@@ -1,6 +1,7 @@
 import os
 import tkinter
 import re
+import pandas as pd
 import xrayutilities as xu
 import numpy as np
 from tkinter import filedialog
@@ -15,27 +16,23 @@ from decimal import Decimal, ROUND_HALF_UP
 import psutil
 
 
-def distinguish_hkl_location_number(x, y):
+def distinguish_hkl_location_number(x):
     """
-    ファイル名がいつものヤツか判別する(ndim=1)とファイル名からサンプル番号、測定した結晶面、測定位置を抽出(ndim=2)。
+    ファイル名からサンプル番号、測定した結晶面、測定位置を抽出。
     """
-    kara = ()
-    if np.ndim(np.array(x)) == 2:
-        if re.match(r"G\d+\sOmega\s\d{3}_upper_\d\.xrdml", x[y][1]):
-            kara = re.findall(r"G(\d+)\sOmega\s(\d{3})_upper_(\d)\.xrdml", x[y][1])
-        elif re.match(r"G\d+\s1point_omega\s\d{3}\supper_\d\.xrdml", x[y][1]):
-            kara = re.findall(r"G(\d+)\s1point_omega\s(\d{3})\supper_(\d)\.xrdml", x[y][1])
-        else:
-            messagebox.showinfo('エラー', x[y][1] + 'のファイル名はエラーです')
-            kara = False
-    elif np.ndim(np.array(x)) == 1:
-        if (re.match(r"G\d+\sOmega\s\d{3}_upper_\d\.xrdml", os.path.basename(x[y]))
-                or re.match(r"G\d+\s1point_omega\s\d{3}\supper_\d\.xrdml", os.path.basename(x[y]))):
-            kara = True
-        else:
-            messagebox.showinfo('エラー', x[y] + 'のファイル名はエラーです')
-            kara = False
-    return kara
+    match_template = map(re.compile, [r"G\d+\sOmega\s\d{3}_upper_\d\.xrdml",
+                                      r"G\d+\s1point_omega\s\d{3}\supper_\d\.xrdml"])
+    for line in match_template:
+        if re.match(line, x):
+            sample_name, plane, position = re.findall('\d+', x)
+            sample_name = int(sample_name)
+            position = int(position)
+            break
+    else:
+        messagebox.showinfo('エラー', x + 'のファイル名はエラーです')
+        sample_name, plane, position = None, None, None
+
+    return sample_name, plane, position
 
 
 def fine_round(x, y=0):
@@ -43,17 +40,6 @@ def fine_round(x, y=0):
     int_x = int(round_x)
     return int_x
 
-
-def check_123_or_134(xarray, i):
-    """
-    ファイル名が1,2,3か1,3,4か区別する。
-    """
-    for n in range(xarray.shape[0]):
-        if xarray[n][2] == xarray[i][2]:
-            if xarray[n][3] == xarray[i][3]:
-                if xarray[n][4] == "4":
-                    return True
-    return False
 
 
 def main():
@@ -67,44 +53,41 @@ def main():
     filepath = filedialog.askopenfilenames(filetypes=fTyp, initialdir=iDir)
 
     """
-    ファイル名がいつものでないやつを弾いてリスト化
+    ファイルをデータフレーム化
     """
-    fList = np.zeros((len(filepath), 6), dtype="U39")
-    errornr = 0
+    Data = pd.DataFrame(columns=('directory', 'file_name', 'sample_name', 'plane', 'position', 'FWHM'))
     for i in range(len(filepath)):
-        if distinguish_hkl_location_number(filepath, i):
-            fList[i][0] = os.path.dirname(filepath[i])
-            fList[i][1] = os.path.basename(filepath[i])
-    temp = fList
-    fList = np.delete(temp, np.where(temp[:, 0] == ""), axis=0)  # fListの無駄な配列をカット
-
+        file_name = os.path.basename(filepath[i])
+        sample_name, plane, position = distinguish_hkl_location_number(file_name)
+        Data.at[i, 'directory'] = os.path.dirname(filepath[i])
+        Data.at[i, 'file_name'] = file_name
+        Data.at[i, 'sample_name'] = sample_name
+        Data.at[i, 'plane'] = plane
+        Data.at[i, 'position'] = position
     """
     半値幅計算
     """
-    for num in range(len(fList)):
-        xrdfile = xu.io.panalytical_xml.XRDMLFile(fList[num][1], path=fList[num][0])
-        scanmot, inte = (
+    for i in range(len(Data)):
+        xrdfile = xu.io.panalytical_xml.XRDMLFile(Data.at[i, 'file_name'], path=Data.at[i, 'directory'])
+        scanmot, intensity = (
             xu.io.panalytical_xml.getxrdml_scan(filetemplate=xrdfile.filename, motors=xrdfile.scan.scanmotname,
                                                 path=os.path.dirname(xrdfile.full_filename)))
-        integer_inte = np.array(inte * 10).astype(np.int)
-
-        fList[num, 2:5] = np.array(distinguish_hkl_location_number(fList, num))
-
+        count_time = xrdfile.scan.ddict['countTime']
+        integer_intensity = np.array(intensity / count_time).astype(np.int)
         try:
-            peaks, properties = find_peaks(integer_inte, distance=(len(integer_inte) / 2))
-            widths = peak_widths(integer_inte, peaks)
-            fwhm = scanmot[fine_round(widths[3][0])] - scanmot[fine_round(widths[2][0])]
-            fList[num][5] = fwhm * 3600
+            peaks, properties = find_peaks(integer_intensity, distance=(len(integer_intensity) / 2))
+            widths = peak_widths(integer_intensity, peaks)
+            fwhm = np.abs(scanmot[fine_round(widths[3][0])] - scanmot[fine_round(widths[2][0])])
+            Data.at[i, 'FWHM'] = fwhm * 3600
         except TypeError:
-            print(fList[num][1] + "は半値幅が計算できませんでした。")
-            fList[num][5] = ""
+            print(Data[i][1] + "は半値幅が計算できませんでした。")
+            Data.at[i, 'FWHM'] = None
 
     """
     Excelシートの初期化
     """
     wb = openpyxl.Workbook()
     sheet = wb.active
-    minsample = np.min(np.array(fList[:, 2], dtype=np.int32), axis=0)
     for j in np.arange(1, 12):
         if j == 1:
             sheet.merge_cells(start_row=1, end_row=2, start_column=j, end_column=j)
@@ -127,36 +110,35 @@ def main():
     """
     シートに記入
     """
-    for i in range(len(fList)):
-        datacolumn = 0
-        sheet.cell(row=int(fList[i][2]) - minsample + 3, column=1).value = int(fList[i][2])
-        if fList[i][3] == "002":
+    complete_data = ~(Data.isnull().any(axis=1))
+    maxsample = np.max(Data.loc[complete_data, 'sample_name'])
+    minsample = np.min(Data.loc[complete_data, 'sample_name'])
+    error = 0
+    for i in Data.index.values:
+        if complete_data[i]:
+            row = int(Data.at[i, 'sample_name']) - minsample + 3
+            sheet.cell(row=row, column=1).value = int(Data.at[i, 'sample_name'])
+            for j, k in enumerate(['002', '102', '100']):
+                if Data.at[i, 'plane'] == k:
+                    datacolumn = 2 + j * 4
+            unique_positions = np.array(list((map(int, Data.loc[(Data['sample_name'] == Data.at[i, 'sample_name']) & (
+                    Data['plane'] == Data.at[i, 'plane']), 'position'].unique()))))
+            unique_positions = np.sort(unique_positions)
+            for j, k in enumerate(unique_positions):
+                if Data.at[i, 'position'] == k:
+                    datacolumn += j
+        else:
+            row = maxsample - minsample + 4 + error
+            sheet.cell(row=row, column=1).value = Data.at[i, 'file_name']
             datacolumn = 2
-        elif fList[i][3] == "102":
-            datacolumn = 6
-        elif fList[i][3] == "100":
-            datacolumn = 10
-        else:
-            messagebox.showinfo('エラー', fList[i][1] + 'は(002),(102),(100)ではありませんね？')
+            error += 1
 
-        if check_123_or_134(fList, i):
-            if fList[i][4] == "3" or fList[i][4] == "4":
-                datacolumn += int(fList[i][4]) - 2
-            else:
-                datacolumn += int(fList[i][4]) - 1
-        else:
-            datacolumn += int(fList[i][4]) - 1
-
-        if fList[i][5] != "":
-            sheet.cell(row=int(fList[i][2]) - minsample + 3, column=datacolumn).value = float(
-                "{:.1f}".format(float(fList[i][5])))
-            if float(fList[i][5]) > 4000:  # 4000s以上を誤差注意とする
-                fill = openpyxl.styles.PatternFill(patternType="solid", fgColor="FFFF00", bgColor="FFFF00")
-                sheet.cell(row=int(fList[i][2]) - minsample + 3, column=1).fill = fill
-        else:
-            sheet.cell(row=int(fList[i][2]) - minsample + 3, column=datacolumn).value = ""
+        sheet.cell(row=row, column=datacolumn).value = float(
+            "{:.1f}".format(float(Data.at[i, 'FWHM'])))
+        if float(Data.at[i, 'FWHM']) > 4000:  # 4000s以上を誤差注意とする
             fill = openpyxl.styles.PatternFill(patternType="solid", fgColor="FFFF00", bgColor="FFFF00")
-            sheet.cell(row=int(fList[i][2]) - minsample + 3, column=1).fill = fill
+            sheet.cell(row=row, column=1).fill = fill
+
     """
     枠線とか整える
     """
