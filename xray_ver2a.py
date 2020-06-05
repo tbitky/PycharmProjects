@@ -24,9 +24,10 @@ def distinguish_hkl_location_number(x):
                                       r"G\d+\s1point_omega\s\d{3}\supper_\d\.xrdml"])
     for line in match_template:
         if re.match(line, x):
-            sample_name, plane, position = re.findall('\d+', x)
-            sample_name = int(sample_name)
-            position = int(position)
+            nums = re.findall('\d+', x)
+            sample_name = int(nums[0])
+            plane = nums[len(nums) - 2]
+            position = int(nums[len(nums) - 1])
             break
     else:
         messagebox.showinfo('エラー', x + 'のファイル名はエラーです')
@@ -39,7 +40,6 @@ def fine_round(x, y=0):
     round_x = Decimal(str(x)).quantize(Decimal(str(y)), rounding=ROUND_HALF_UP)
     int_x = int(round_x)
     return int_x
-
 
 
 def main():
