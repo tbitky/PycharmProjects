@@ -41,7 +41,6 @@ def fine_round(x, y=0):
     return int_x
 
 
-
 def main():
     """
     ファイルダイアログを開いてfilepathに格納
@@ -77,7 +76,11 @@ def main():
         try:
             peaks, properties = find_peaks(integer_intensity, distance=(len(integer_intensity) / 2))
             widths = peak_widths(integer_intensity, peaks)
-            fwhm = np.abs(scanmot[fine_round(widths[3][0])] - scanmot[fine_round(widths[2][0])])
+            left_edge = scanmot[int(widths[2][0])] + (widths[2][0] - int(widths[2][0])) * (
+                    scanmot[int(widths[2][0]) + 1] - scanmot[int(widths[2][0])])
+            right_edge = scanmot[int(widths[3][0])] + (widths[3][0] - int(widths[3][0])) * (
+                    scanmot[int(widths[3][0]) + 1] - scanmot[int(widths[3][0])])
+            fwhm = np.abs(left_edge - right_edge)
             Data.at[i, 'FWHM'] = fwhm * 3600
         except TypeError:
             print(Data[i][1] + "は半値幅が計算できませんでした。")
