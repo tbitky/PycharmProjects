@@ -20,6 +20,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from lmfit import models
 import lmfit
 import itertools
+from ipywidgets import Output
+from matplotlib.patches import Ellipse
 
 """
 GaN |a,c,ν,Psp,e31,e33,C13,C33
@@ -191,7 +193,7 @@ def lmfit_voigt_startparams(data, peaks, counttime):
         [1, 0, True]],
         index=values, columns=('max', 'min', 'vary'))
     for i in range(len(peaks[0])):
-        amplitude = np.sqrt(data[2][peaks[0][i]][peaks[1][i]] / counttime)
+        amplitude = data[2][peaks[0][i]][peaks[1][i]]
 
         xcenter = data[0][peaks[0][i]][peaks[1][i]]
         ycenter = data[1][peaks[0][i]][peaks[1][i]]
@@ -273,11 +275,11 @@ def main():
     count_time = xrdfileoption.scan.ddict['countTime'][0]
     startparams, costrains = lmfit_voigt_startparams(twod_datas, peak_indices, count_time)
     hh, kk, ll = map(int, input('hkl入力:').split())
-    output = lmfit_voigt_fit(twod_datas, startparams, costrains)
-    fitdatas = output.best_fit.reshape(twod_datas[2].shape)
+    Result = lmfit_voigt_fit(twod_datas, startparams, costrains)
+    fitdatas = Result.best_fit.reshape(twod_datas[2].shape)
     r2 = coefficient_of_determination_r2(twod_datas[2], fitdatas)
     print(str(r2))
-    fitted_params_dict = output.best_values
+    fitted_params_dict = Result.best_values
 
     new_values = ['a', 'c']
     fit_values = new_values + values
@@ -292,7 +294,7 @@ def main():
         for k, l in enumerate(new_values):
             fitted_params.at['Peak' + str(i), l] = lattce_constants[k]
 
-    print(output.fit_report())
+    print(Result.fit_report())
     if len(fitted_params) % 2 == 0:
         fig_num = 2 + len(fitted_params) // 2
     elif len(fitted_params) % 2 == 1:
@@ -321,6 +323,25 @@ def main():
             twod_datas[0][peak_indices[0][i]][peak_indices[1][i]],
             twod_datas[1][peak_indices[0][i]][peak_indices[1][i]]),
                          color='w')
+    out = Output()
+    display(out)
+    ellipses = pd.DataFrame(columns=('xy_cordinate', 'horizontal_width', 'vertical_width', 'angle'))
+    for i in fitted_params.index.values:
+        ellipses.at[i, 'xy_cordinate'] = (fitted_params.at[i, 'amplitude':]
+
+    class DraggableEllipse:
+        def __init__(self, ellipse):
+            self.ellipse = ellipse
+
+        def connect(self):
+            'connect to all the events we need'
+            self.cidpress = self.rect.figure.canvas.mpl_connect(
+                'button_press_event', self.on_press)
+            self.cidrelease = self.rect.figure.canvas.mpl_connect(
+                'button_release_event', self.on_release)
+            self.cidmotion = self.rect.figure.canvas.mpl_connect(
+                'motion_notify_event', self.on_motion)
+
     "color bar"
     fig.colorbar(scalarMap0, ax=axes[0])
     fig.colorbar(scalarMap0, ax=axes[1])
