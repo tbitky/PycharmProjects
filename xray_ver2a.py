@@ -75,7 +75,7 @@ def main():
         count_time = xrdfile.scan.ddict['countTime']
         integer_intensity = np.array(intensity / count_time).astype(np.int)
         try:
-            peaks, properties = find_peaks(integer_intensity, distance=(len(integer_intensity) / 2))
+            peaks, properties = find_peaks(integer_intensity, distance=len(integer_intensity) // 2)
             widths = peak_widths(integer_intensity, peaks)
             fwhm = np.abs(scanmot[fine_round(widths[3][0])] - scanmot[fine_round(widths[2][0])])
             Data.at[i, 'FWHM'] = fwhm * 3600
