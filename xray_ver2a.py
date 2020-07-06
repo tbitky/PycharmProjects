@@ -30,7 +30,6 @@ def distinguish_hkl_location_number(x):
             position = int(nums[len(nums) - 1])
             break
     else:
-        messagebox.showinfo('エラー', x + 'のファイル名はエラーです')
         sample_name, plane, position = None, None, None
 
     return sample_name, plane, position
@@ -42,6 +41,31 @@ def fine_round(x, y=0):
     return int_x
 
 
+def switching_fwhm_calculate(position, intensity, means='absolute'):
+    peaks, properties = find_peaks(intensity, distance=len(intensity) // 2)
+    if means == 'absolute':
+        try:
+            data = (position, intensity)
+            fwhm_in_degree = xu.math.misc.fwhm_exp(position, intensity)
+        except:
+            fwhm_in_degree = None
+    elif means == 'relative':
+        try:
+            widths = peak_widths(intensity, peaks)
+            left_edge = position[int(widths[2][0])] + (widths[2][0] - int(widths[2][0])) * (
+                    position[int(widths[2][0]) + 1] - position[int(widths[2][0])])
+            right_edge = position[int(widths[3][0])] + (widths[3][0] - int(widths[3][0])) * (
+                    position[int(widths[3][0]) + 1] - position[int(widths[3][0])])
+            fwhm_in_degree = np.abs(left_edge - right_edge)
+        except TypeError:
+            fwhm_in_degree = None
+    if fwhm_in_degree:
+        fwhm_in_arcsec = fwhm_in_degree * 3600
+    else:
+        fwhm_in_arcsec = fwhm_in_degree
+    return fwhm_in_arcsec
+
+
 def main():
     """
     ファイルダイアログを開いてfilepathに格納
@@ -49,7 +73,7 @@ def main():
     root = tkinter.Tk()
     root.withdraw()
     fTyp = [("xrdファイル", "*.xrdml")]
-    iDir = os.path.abspath(os.path.dirname(r"\\Altair\SR4000data\003_XRD\ "))
+    iDir = os.path.abspath(os.path.dirname(r"\\Sirius\carbon-nas\SR4000\003_XRD"))
     filepath = filedialog.askopenfilenames(filetypes=fTyp, initialdir=iDir)
 
     """
@@ -74,19 +98,7 @@ def main():
                                                 path=os.path.dirname(xrdfile.full_filename)))
         count_time = xrdfile.scan.ddict['countTime']
         integer_intensity = np.array(intensity / count_time).astype(np.int)
-        try:
-            peaks, properties = find_peaks(integer_intensity, distance=len(integer_intensity) // 2)
-            widths = peak_widths(integer_intensity, peaks)
-            left_edge = scanmot[int(widths[2][0])] + (widths[2][0] - int(widths[2][0])) * (
-                    scanmot[int(widths[2][0]) + 1] - scanmot[int(widths[2][0])])
-            right_edge = scanmot[int(widths[3][0])] + (widths[3][0] - int(widths[3][0])) * (
-                    scanmot[int(widths[3][0]) + 1] - scanmot[int(widths[3][0])])
-            fwhm = np.abs(left_edge - right_edge)
-            Data.at[i, 'FWHM'] = fwhm * 3600
-        except TypeError:
-            print(Data[i][1] + "は半値幅が計算できませんでした。")
-            Data.at[i, 'FWHM'] = None
-
+        Data.at[i, 'FWHM'] = switching_fwhm_calculate(scanmot, integer_intensity, means='absolute')
     """
     Excelシートの初期化
     """
@@ -136,12 +148,12 @@ def main():
             sheet.cell(row=row, column=1).value = Data.at[i, 'file_name']
             datacolumn = 2
             error += 1
-
-        sheet.cell(row=row, column=datacolumn).value = float(
-            "{:.1f}".format(float(Data.at[i, 'FWHM'])))
-        if float(Data.at[i, 'FWHM']) > 4000:  # 4000s以上を誤差注意とする
-            fill = openpyxl.styles.PatternFill(patternType="solid", fgColor="FFFF00", bgColor="FFFF00")
-            sheet.cell(row=row, column=1).fill = fill
+        if Data.at[i, 'FWHM'] is not None:
+            sheet.cell(row=row, column=datacolumn).value = float(
+                "{:.1f}".format(float(Data.at[i, 'FWHM'])))
+            if float(Data.at[i, 'FWHM']) > 4000:  # 4000s以上を誤差注意とする
+                fill = openpyxl.styles.PatternFill(patternType="solid", fgColor="FFFF00", bgColor="FFFF00")
+                sheet.cell(row=row, column=1).fill = fill
 
     """
     枠線とか整える
