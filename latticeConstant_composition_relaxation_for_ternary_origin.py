@@ -1,12 +1,12 @@
-from numpy.linalg import solve
+
 import tkinter
 from tkinter import filedialog
-from tkinter import messagebox
+
 import os
 import sympy
-from sympy import I
+
 import scipy
-import re
+
 from sympy import re as real
 from scipy.signal import peak_widths
 import pandas as pd
@@ -17,9 +17,9 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from scipy.ndimage.filters import maximum_filter
 from decimal import Decimal, ROUND_HALF_UP
-from lmfit import models
+
 import lmfit
-import itertools
+
 
 """
 GaN |a,c,ν,Psp,e31,e33,C13,C33
