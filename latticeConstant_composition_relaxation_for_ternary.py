@@ -100,7 +100,7 @@ def main():
     root = tkinter.Tk()
     root.withdraw()
     fTyp = [("xrdファイル", "*.xrdml")]
-    iDir = os.path.abspath(os.path.dirname(r"\\Sirius\carbon-nas\SR4000\003_XRD\RSM"))
+    iDir = os.path.abspath(os.path.dirname(r"\\Deneb\SR4000\003_XRD\RSM"))
     filepath = filedialog.askopenfilename(filetypes=fTyp, initialdir=iDir)
 
     xrdfileoption = xu.io.panalytical_xml.XRDMLFile(os.path.basename(filepath), path=os.path.dirname(filepath))
