@@ -67,7 +67,7 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l):
             algan_solution, algan_solution[0] * 100)
         print(line)
     if ingan_solution[0]:
-        line = "InGaN In={1:4.1f}% ,a={0[1]:.3f}Å, c={0[2]:.3f}Å, ⊿a={0[3]:+.2f}%, ⊿c={0[4]:+.2f}%".format(
+        line = "InGaN In={1:4.latticeConstant_composition_relaxation_for_ternary_origin.py1f}% ,a={0[1]:.3f}Å, c={0[2]:.3f}Å, ⊿a={0[3]:+.2f}%, ⊿c={0[4]:+.2f}%".format(
             ingan_solution, ingan_solution[0] * 100)
         print(line)
     if inaln_solution[0]:
