@@ -324,10 +324,9 @@ def main():
             twod_datas[1][peak_indices[0][i]][peak_indices[1][i]]),
                          color='w')
     out = Output()
-    display(out)
     ellipses = pd.DataFrame(columns=('xy_cordinate', 'horizontal_width', 'vertical_width', 'angle'))
     for i in fitted_params.index.values:
-        ellipses.at[i, 'xy_cordinate'] = (fitted_params.at[i, 'amplitude':]
+        ellipses.at[i, 'xy_cordinate'] = (fitted_params.at[i, 'amplitude':])
 
     class DraggableEllipse:
         def __init__(self, ellipse):
