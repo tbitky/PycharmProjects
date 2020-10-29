@@ -1,12 +1,12 @@
-from numpy.linalg import solve
+
 import tkinter
 from tkinter import filedialog
-from tkinter import messagebox
+
 import os
 import sympy
-from sympy import I
+
 import scipy
-import re
+
 from sympy import re as real
 from scipy.signal import peak_widths
 import pandas as pd
@@ -17,18 +17,18 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from scipy.ndimage.filters import maximum_filter
 from decimal import Decimal, ROUND_HALF_UP
-from lmfit import models
+
 import lmfit
-import itertools
+
 
 """
 GaN |a,c,ν,Psp,e31,e33,C13,C33
 AlN |
 InN |
 """
-properties = [[3.189, 5.185, 0.203, -0.029, -0.49, 0.73, 100, 392],
-              [3.112, 4.982, 0.225, -0.081, -0.60, 1.46, 127, 382],
-              [3.548, 5.760, 0.291, -0.032, -0.57, 0.97, 94, 200]]
+properties = [[3.1893, 5.1851, 0.203, -0.029, -0.49, 0.73, 100, 392],
+              [3.1130, 4.9816, 0.225, -0.081, -0.60, 1.46, 127, 382],
+              [3.5380, 5.7020, 0.291, -0.032, -0.57, 0.97, 94, 200]]
 
 
 def equation_calculate(a, b, a_measured, c_measured):
@@ -67,7 +67,7 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l):
             algan_solution, algan_solution[0] * 100)
         print(line)
     if ingan_solution[0]:
-        line = "InGaN In={1:4.1f}% ,a={0[1]:.3f}Å, c={0[2]:.3f}Å, ⊿a={0[3]:+.2f}%, ⊿c={0[4]:+.2f}%".format(
+        line = "InGaN In={1:4.latticeConstant_composition_relaxation_for_ternary_origin.py1f}% ,a={0[1]:.3f}Å, c={0[2]:.3f}Å, ⊿a={0[3]:+.2f}%, ⊿c={0[4]:+.2f}%".format(
             ingan_solution, ingan_solution[0] * 100)
         print(line)
     if inaln_solution[0]:
