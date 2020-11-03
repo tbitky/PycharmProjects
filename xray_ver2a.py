@@ -14,6 +14,7 @@ import subprocess
 from time import sleep
 from decimal import Decimal, ROUND_HALF_UP
 import psutil
+import lib.egw.functions as egw
 
 
 def distinguish_hkl_location_number(x):
@@ -35,17 +36,11 @@ def distinguish_hkl_location_number(x):
     return sample_name, plane, position
 
 
-def fine_round(x, y=0):
-    round_x = Decimal(str(x)).quantize(Decimal(str(y)), rounding=ROUND_HALF_UP)
-    int_x = int(round_x)
-    return int_x
-
 
 def switching_fwhm_calculate(position, intensity, means='absolute'):
     peaks, properties = find_peaks(intensity, distance=len(intensity) // 2)
     if means == 'absolute':
         try:
-            data = (position, intensity)
             fwhm_in_degree = xu.math.misc.fwhm_exp(position, intensity)
         except:
             fwhm_in_degree = None
