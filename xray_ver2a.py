@@ -129,6 +129,8 @@ def main():
         if complete_data[i]:
             row = int(Data.at[i, 'sample_name']) - minsample + 3
             sheet.cell(row=row, column=1).value = int(Data.at[i, 'sample_name'])
+            sheet.cell(row=row, column=5).value = '=AVERAGE(B:D)'
+            sheet.cell(row=row, column=9).value = '=AVERAGE(E:I)'
             for j, k in enumerate(['002', '102', '100']):
                 if Data.at[i, 'plane'] == k:
                     datacolumn = 2 + j * 4
@@ -138,11 +140,18 @@ def main():
             for j, k in enumerate(unique_positions):
                 if Data.at[i, 'position'] == k:
                     datacolumn += j
+        '''
+        不完全なデータは末尾に記入
+        '''
         else:
             row = maxsample - minsample + 4 + error
             sheet.cell(row=row, column=1).value = Data.at[i, 'file_name']
             datacolumn = 2
             error += 1
+
+        '''
+        4000以上をX'pert epitaxyとの誤差注意とし、その場合色で警告
+        '''
         if Data.at[i, 'FWHM'] is not None:
             sheet.cell(row=row, column=datacolumn).value = float(
                 "{:.1f}".format(float(Data.at[i, 'FWHM'])))
