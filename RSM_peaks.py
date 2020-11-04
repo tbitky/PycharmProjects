@@ -97,14 +97,21 @@ def fine_round(x, y=0):
 
 
 def main():
+    """
+    ファイル選択
+    """
     root = tkinter.Tk()
     root.withdraw()
     fTyp = [("xrdファイル", "*.xrdml")]
     iDir = os.path.abspath(os.path.dirname(r"\\Deneb\SR4000\003_XRD\RSM"))
     filepath = filedialog.askopenfilename(filetypes=fTyp, initialdir=iDir)
 
+    """
+    データ抽出
+    """
     xrdfileoption = xu.io.panalytical_xml.XRDMLFile(os.path.basename(filepath), path=os.path.dirname(filepath))
     rawxrdfile = xu.io.panalytical_xml.getxrdml_map(os.path.basename(filepath), path=os.path.dirname(filepath))
+
 
     detect_range = (3,) + xrdfileoption.scan.ddict['detector'].shape
     twod_datas = np.array(rawxrdfile).reshape((detect_range))
@@ -114,7 +121,7 @@ def main():
     twod_datas = twod_datas.transpose(0, 2, 1)
     twod_datas = twod_datas[:, ::-1, ::-1]
     nonzero_indices = np.where(twod_datas[2] > 0)
-    peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.02)
+    peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.001)
     count_time = xrdfileoption.scan.ddict['countTime'][0]
 
     hh, kk, ll = map(int, input('hkl入力:').split())

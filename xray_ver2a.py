@@ -126,11 +126,15 @@ def main():
     minsample = np.min(Data.loc[complete_data, 'sample_name'])
     error = 0
     for i in Data.index.values:
+        """
+        
+        """
         if complete_data[i]:
             row = int(Data.at[i, 'sample_name']) - minsample + 3
             sheet.cell(row=row, column=1).value = int(Data.at[i, 'sample_name'])
-            sheet.cell(row=row, column=5).value = '=AVERAGE(B:D)'
-            sheet.cell(row=row, column=9).value = '=AVERAGE(E:I)'
+            average_line='=IF(OR(ISBLANK({0:}{2:}),ISERROR({0:}{2:})),"",AVERAGE({0:}{2:}:{1:}{2:}))'
+            sheet.cell(row=row, column=5).value = average_line.format('AB','AD',int(Data.at[i, 'sample_name']-4309))
+            sheet.cell(row=row, column=9).value = average_line.format('AF','AH',int(Data.at[i, 'sample_name']-4309))
             for j, k in enumerate(['002', '102', '100']):
                 if Data.at[i, 'plane'] == k:
                     datacolumn = 2 + j * 4
@@ -140,9 +144,6 @@ def main():
             for j, k in enumerate(unique_positions):
                 if Data.at[i, 'position'] == k:
                     datacolumn += j
-        '''
-        不完全なデータは末尾に記入
-        '''
         else:
             row = maxsample - minsample + 4 + error
             sheet.cell(row=row, column=1).value = Data.at[i, 'file_name']
