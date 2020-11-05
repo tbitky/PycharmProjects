@@ -17,19 +17,17 @@ import psutil
 from scipy import signal
 
 
-def distinguish_sample_number_and_direction(x):
+def distinguish_sample_number_and_direction(file_name):
     """
     ファイル名からサンプル番号,測定方向を抽出。
     """
-    match_template = re.compile(r"フィルタ+ 傾斜G/d_/d.xlsx")
-    for line in match_template:
-        if re.match(line, x):
-            nums = re.findall('\d+', x)
-            sample_name = int(nums[0])
-            direction = int(nums[1])
-            break
+    line = re.compile(r"フィルタ\+\s傾斜G\d+_\d.xls")
+    if re.match(line, file_name):
+        nums = re.findall('\d+', file_name)
+        sample_name = int(nums[0])
+        direction = int(nums[1])
     else:
-        sample_name, direction = None, None
+            sample_name, direction = None, None
 
     return sample_name, direction
 
@@ -41,17 +39,19 @@ def fine_round(x, y=0):
 
 
 def bowing_direction(data):
-    maxid = signal.argrelmax(data, order=int(len(data) / 10))
-    minid = signal.argrelmin(data, order=int(len(data) / 10))
-    if len(maxid) + len(minid) == 1:
-        if maxid:
+    maxid = signal.argrelmax(data, order=int(len(data) / 10),mode='wrap')
+    minid = signal.argrelmin(data, order=int(len(data) / 10),mode='wrap')
+    if len(maxid[0]) + len(minid[0]) == 0:
+        direction = '-'
+    elif len(maxid[0]) + len(minid[0]) == 1:
+        if maxid[0]:
             direction = '凸'
         else:
             direction = '凹'
-    elif len(maxid) + len(minid) == 2:
+    elif len(maxid[0]) + len(minid[0]) == 2:
         direction = 'N'
-    elif len(maxid) + len(minid) == 3:
-        if len(maxid) >= len(minid):
+    elif len(maxid[0]) + len(minid[0]) == 3:
+        if len(maxid[0]) >= len(minid[0]):
             direction = 'M'
         else:
             direction = 'W'
@@ -101,16 +101,17 @@ def main():
 
     Data = pd.DataFrame(columns=('directory', 'file_name', 'sample_name', 'bowing_1', 'shape_1', 'bowing_2', 'shape_2'))
     for i in range(len(filepath)):
-        datawb=openpyxl.load_workbook(filepath[i],read_only=True)
-        datasheet = wb['測定結果']
-        max_column=len(datasheet.iter_cols(min_col=1, min_row=4, max_row=4))
-        for col in datasheet.iter_cols(min_col=1, min_row=4, max_row=4):
-            col=x
+        dataws = pd.read_excel(filepath[i], sheet_name='測定結果')
+        bowingdata = dataws.loc[:, 'Revised'].values
+        shape = bowing_direction(bowingdata)
+        height=dataws.iat[23,5]
+        directory=os.path.dirname(filepath[i])
         file_name = os.path.basename(filepath[i])
         sample_name, direction = distinguish_sample_number_and_direction(file_name)
-        Data.at[i, 'directory'] = os.path.dirname(filepath[i])
-        Data.at[i, 'file_name'] = file_name
-        Data.at[i, 'sample_name'] = sample_name
+        Data.at[str(sample_name), 'sample_name'] = sample_name
+        Data.at[str(sample_name), 'bowing_'+str(direction)] = height
+        Data.at[str(sample_name), 'shape_'+str(direction)]=shape
+
 
     """
     Excelシートの初期化
