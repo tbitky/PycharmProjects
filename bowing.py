@@ -27,7 +27,7 @@ def distinguish_sample_number_and_direction(file_name):
         sample_name = int(nums[0])
         direction = int(nums[1])
     else:
-            sample_name, direction = None, None
+        sample_name, direction = None, None
 
     return sample_name, direction
 
@@ -39,19 +39,23 @@ def fine_round(x, y=0):
 
 
 def bowing_direction(data):
-    maxid = signal.argrelmax(data, order=int(len(data) / 10),mode='wrap')
-    minid = signal.argrelmin(data, order=int(len(data) / 10),mode='wrap')
-    if len(maxid[0]) + len(minid[0]) == 0:
+    horizon = (data[0] + data[-1]) / 2
+    peak_cut = 25
+    maxid = list(signal.argrelmax(data, order=int(len(data)/3), mode='wrap'))
+    minid = list(signal.argrelmin(data, order=int(len(data)/3), mode='wrap'))
+    refined_maxid = [i for i in maxid[0] if data[i] - horizon >= peak_cut]
+    refined_minid = [i for i in minid[0] if data[i] - horizon <= peak_cut]
+    if len(refined_maxid) + len(refined_minid) == 0:
         direction = '-'
-    elif len(maxid[0]) + len(minid[0]) == 1:
-        if maxid[0]:
+    elif len(refined_maxid) + len(refined_minid) == 1:
+        if refined_maxid:
             direction = '凸'
         else:
             direction = '凹'
-    elif len(maxid[0]) + len(minid[0]) == 2:
+    elif len(refined_maxid) + len(refined_minid) == 2:
         direction = 'N'
-    elif len(maxid[0]) + len(minid[0]) == 3:
-        if len(maxid[0]) >= len(minid[0]):
+    elif len(refined_maxid) + len(refined_minid) == 3:
+        if len(refined_maxid) >= len(refined_minid):
             direction = 'M'
         else:
             direction = 'W'
@@ -104,14 +108,13 @@ def main():
         dataws = pd.read_excel(filepath[i], sheet_name='測定結果')
         bowingdata = dataws.loc[:, 'Revised'].values
         shape = bowing_direction(bowingdata)
-        height=dataws.iat[23,5]
-        directory=os.path.dirname(filepath[i])
+        height = dataws.iat[23, 5]
+        directory = os.path.dirname(filepath[i])
         file_name = os.path.basename(filepath[i])
         sample_name, direction = distinguish_sample_number_and_direction(file_name)
         Data.at[str(sample_name), 'sample_name'] = sample_name
-        Data.at[str(sample_name), 'bowing_'+str(direction)] = height
-        Data.at[str(sample_name), 'shape_'+str(direction)]=shape
-
+        Data.at[str(sample_name), 'bowing_' + str(direction)] = height
+        Data.at[str(sample_name), 'shape_' + str(direction)] = shape
 
     """
     Excelシートの初期化
