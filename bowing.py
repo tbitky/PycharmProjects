@@ -40,9 +40,9 @@ def fine_round(x, y=0):
 
 def bowing_direction(data):
     horizon = (data[0] + data[-1]) / 2
-    peak_cut = 25
-    maxid = list(signal.argrelmax(data, order=int(len(data)/3), mode='wrap'))
-    minid = list(signal.argrelmin(data, order=int(len(data)/3), mode='wrap'))
+    peak_cut = 15
+    maxid = list(signal.argrelmax(data, order=int(len(data)/3)))
+    minid = list(signal.argrelmin(data, order=int(len(data)/3)))
     refined_maxid = [i for i in maxid[0] if data[i] - horizon >= peak_cut]
     refined_minid = [i for i in minid[0] if data[i] - horizon <= peak_cut]
     if len(refined_maxid) + len(refined_minid) == 0:
