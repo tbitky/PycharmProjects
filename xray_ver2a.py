@@ -143,7 +143,8 @@ def main():
                 if Data.at[i, 'position'] == k:
                     datacolumn += j
         else:
-            row = maxsample - minsample + 4 + error
+            error += 1
+            row = maxsample - minsample + 3 + error
             sheet.cell(row=row, column=1).value = Data.at[i, 'file_name']
             datacolumn = 2
             error += 1
