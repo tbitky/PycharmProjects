@@ -1,20 +1,18 @@
 import os
-import tkinter
 import re
-import pandas as pd
-import xrayutilities as xu
-import numpy as np
-from tkinter import filedialog
-from tkinter import messagebox
-from scipy.signal import find_peaks, peak_widths
-import openpyxl
-from openpyxl.styles.borders import Border, Side
-from openpyxl.styles.alignment import Alignment
 import subprocess
+import tkinter
 from time import sleep
-from decimal import Decimal, ROUND_HALF_UP
+from tkinter import filedialog
+
+import numpy as np
+import openpyxl
+import pandas as pd
 import psutil
-import lib.egw.functions as egw
+import xrayutilities as xu
+from openpyxl.styles.alignment import Alignment
+from openpyxl.styles.borders import Border, Side
+from scipy.signal import find_peaks, peak_widths
 
 
 def distinguish_hkl_location_number(x):

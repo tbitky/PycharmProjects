@@ -1,23 +1,6 @@
-import tkinter
-from tkinter import filedialog
-
-import os
-import sympy
-
-import scipy
-
-from sympy import re as real
-from scipy.signal import peak_widths
-import pandas as pd
 import numpy as np
-import xrayutilities as xu
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
-from scipy.ndimage.filters import maximum_filter
-from decimal import Decimal, ROUND_HALF_UP
-
-import lmfit
+import sympy
+from sympy import re as real
 
 """
 GaN |a,c,ν,Psp,e31,e33,C13,C33

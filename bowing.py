@@ -1,19 +1,17 @@
 import os
-import tkinter
 import re
-import pandas as pd
-import xrayutilities as xu
-import numpy as np
-from tkinter import filedialog
-from tkinter import messagebox
-from scipy.signal import find_peaks, peak_widths
-import openpyxl
-from openpyxl.styles.borders import Border, Side
-from openpyxl.styles.alignment import Alignment
 import subprocess
-from time import sleep
+import tkinter
 from decimal import Decimal, ROUND_HALF_UP
+from time import sleep
+from tkinter import filedialog
+
+import numpy as np
+import openpyxl
+import pandas as pd
 import psutil
+from openpyxl.styles.alignment import Alignment
+from openpyxl.styles.borders import Border, Side
 from scipy import signal
 
 
