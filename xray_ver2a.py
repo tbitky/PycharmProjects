@@ -99,11 +99,9 @@ def main():
     """
     wb = openpyxl.Workbook()
     sheet = wb.active
-    for j in np.arange(1, 12):
-        if j == 1:
-            sheet.merge_cells(start_row=1, end_row=2, start_column=j, end_column=j)
-        elif j == 2 or j == 6:
-            sheet.merge_cells(start_row=1, end_row=1, start_column=j, end_column=j + 3)
+    sheet.merge_cells(start_row=1, end_row=2, start_column=1, end_column=1)
+    sheet.merge_cells(start_row=1, end_row=1, start_column=2, end_column=5)
+    sheet.merge_cells(start_row=1, end_row=1, start_column=6, end_column=9)
 
     sheet["A1"].value = "サンプル番号"
     sheet["B1"].value = "002"
