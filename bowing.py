@@ -1,7 +1,17 @@
 import os
-import re
-import subprocess
 import tkinter
+import re
+import pandas as pd
+import xrayutilities as xu
+import numpy as np
+from tkinter import filedialog
+from tkinter import messagebox
+from scipy.signal import find_peaks, peak_widths
+import openpyxl
+from openpyxl.styles.borders import Border, Side
+from openpyxl.styles.alignment import Alignment
+import subprocess
+from time import sleep
 from decimal import Decimal, ROUND_HALF_UP
 from time import sleep
 from tkinter import filedialog
