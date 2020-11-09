@@ -71,6 +71,7 @@ def bowing_direction(data):
         direction = False
     return direction
 
+
 def main():
     """
     ファイルダイアログを開いてfilepathに格納
@@ -84,14 +85,14 @@ def main():
     """
     ファイルをデータフレーム化
     """
-    columns = ('bowing_1', 'shape_1', 'bowing_2', 'shape_2')
+    columns = ('shape_1', 'shape_2', 'bowing_1', 'bowing_2')
     Data = pd.DataFrame(columns=columns)
     for i in range(len(filepath)):
         dataws = pd.read_excel(filepath[i], sheet_name='測定結果')
         bowingdata = dataws.loc[:, 'Revised'].values
         shape = bowing_direction(bowingdata)
         height = dataws.iat[23, 5]
-        file_name=os.path.basename(filepath[i])
+        file_name = os.path.basename(filepath[i])
         sample_name, direction = distinguish_sample_number_and_direction(file_name)
         Data.at[str(sample_name), 'sample_name'] = sample_name
         Data.at[str(sample_name), 'bowing_' + str(direction)] = height
@@ -107,12 +108,12 @@ def main():
     sheet.merge_cells(start_row=1, end_row=1, start_column=4, end_column=5)
 
     sheet['A1'].value = 'サンプル番号'
-    sheet['B1'].value = '1方向'
-    sheet['D1'].value = '1方向'
-    sheet['B2'].value = '方向'
-    sheet['C2'].value = '高さ'
-    sheet['D2'].value = '方向'
-    sheet['E2'].value = '高さ'
+    sheet['B1'].value = '反り形状'
+    sheet['D1'].value = '反り[um]'
+    sheet['B2'].value = '1方向'
+    sheet['C2'].value = '2方向'
+    sheet['D2'].value = '1方向'
+    sheet['E2'].value = '2方向'
 
     """
     シートに記入
@@ -120,7 +121,7 @@ def main():
     minsample = int(np.min(Data.index.values))
     maxsample = int(np.max(Data.index.values))
     error = 0
-    for i,j in enumerate(Data.index.values):
+    for i, j in enumerate(Data.index.values):
         if j.isdecimal():
             row = int(j) - minsample + 3
             sheet.cell(row=row, column=1).value = 'G' + str(j)
@@ -128,9 +129,8 @@ def main():
             error += 1
             row = maxsample - minsample + 3 + error
             sheet.cell(row=row, column=1).value = j
-        for k,l in enumerate(columns):
-            sheet.cell(row=row, column=k+2).value = Data.at[j,l]
-
+        for k, l in enumerate(columns):
+            sheet.cell(row=row, column=k + 2).value = Data.at[j, l]
 
     """
     枠線とか整える
