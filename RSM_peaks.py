@@ -121,7 +121,7 @@ def main():
     twod_datas = twod_datas.transpose(0, 2, 1)
     twod_datas = twod_datas[:, ::-1, ::-1]
     nonzero_indices = np.where(twod_datas[2] > 0)
-    peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.001)
+    peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.0005)
     count_time = xrdfileoption.scan.ddict['countTime'][0]
 
     hh, kk, ll = map(int, input('hkl入力:').split())
