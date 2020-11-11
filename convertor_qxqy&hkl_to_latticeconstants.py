@@ -37,8 +37,8 @@ def equation_calculate(a, b, a_measured, c_measured):
 
 
 def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10 ** -10):
-    a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) *4/ 3) * (xray * 10 ** 10) / qx)
-    c = abs(miller_l / 2 * (xray * 10 ** 10) / qy)
+    a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / qx)
+    c = abs(miller_l * (xray / 2 * 10 ** 10) / qy)
     print("測定値　　　      a={0:.3f}Å, c={1:.3f}Å".format(a, c))
     algan_solution = equation_calculate(1, 0, a, c)
     ingan_solution = equation_calculate(2, 0, a, c)
@@ -60,10 +60,32 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10
     return a, c
 
 
+def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
+    omega = sympy.Symbol('omega', positive=True)
+    ttheta = sympy.Symbol('ttheta', positive=True)
+    fx = qx - (sympy.cos(omega * sympy.pi / 180) - sympy.cos((ttheta - omega) * sympy.pi / 180)) / 2
+    fy = qy - (sympy.sin(omega * sympy.pi / 180) + sympy.sin((ttheta - omega) * sympy.pi / 180)) / 2
+    solves = sympy.solve([fx, fy], [omega, ttheta])
+
+    for i, j in enumerate(solves):
+        calculated_omega = None
+        calculated_ttheta = None
+        for k, l in enumerate(j):
+            if l < 0:
+                break
+        else:
+            calculated_omega = solves[i][0]
+            calculated_ttheta = solves[i][1]
+    line = 'omega = {0:.6}[deg]\n2theta= {1:.6}[deg]'.format(calculated_omega, calculated_ttheta)
+    print(line)
+    return calculated_omega, calculated_ttheta
+
+
 def main():
     qx, qy = map(float, input('qx[rlu] qy入力[rlu]:').split())
     hh, kk, ll = map(int, input('h k l入力:').split())
     ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
+    omega_and_ttheta_calculate(qx, qy)
 
 
 if __name__ == '__main__':
