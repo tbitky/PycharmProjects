@@ -81,11 +81,80 @@ def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
     return calculated_omega, calculated_ttheta
 
 
+def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
+                                                                             relaxation,
+                                                                             lattice_constant_a, miller_h, miller_k,
+                                                                             miller_l, xray=1.54 * 10 ** 10):
+    alloy_a = composition * properties[material_1][0] + (1 - composition) * properties[material_2][0]
+    alloy_c = composition * properties[material_1][1] + (1 - composition) * properties[material_2][1]
+    alloy_v = composition * properties[material_1][2] + (1 - composition) * properties[material_2][2]
+
+    try:
+        if lattice_constant_a:
+            real_a = lattice_constant_a
+        elif relaxation:
+            real_a = alloy_a * relaxation / 100
+    except ValueError:
+        print('input relaxation or lattice_constant_a')
+    real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
+    qx = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / real_a)
+    qy = abs(miller_l * (xray / 2 * 10 ** 10) / real_c)
+    line='qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx,qy)
+    print(line)
+    return qx, qy
+
+
 def main():
-    qx, qy = map(float, input('qx[rlu] qy入力[rlu]:').split())
-    hh, kk, ll = map(int, input('h k l入力:').split())
-    ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
-    omega_and_ttheta_calculate(qx, qy)
+    """
+    input
+    """
+    try:
+        qx,qy=0,0
+        qx, qy = map(float, input('qx[rlu] qy[rlu]入力:').split())
+    except:
+        pass
+    try:
+        hh,kk,ll=0,0,0
+        hh, kk, ll = map(int, input('h k l入力:').split())
+    except:
+        pass
+    try:
+        material_1,material_2,composition='','',''
+        material_1, material_2, composition = map(int, input('半導体1 半導体2 組成入力：').split())
+    except:
+        pass
+    try:
+        lattice_constant_a =0
+        lattice_constant_a = int(input('格子定数[Å]入力：'))
+    except:
+        pass
+    try:
+        relaxation=0
+        relaxation = int(input('緩和率[%]入力：'))
+    except:
+        pass
+    try:
+        omega, ttheta =0,0
+        omega, ttheta = map(float, input('omega[deg] omega[deg]入力:').split())
+    except:
+        pass
+    if all((material_1, material_2, composition, hh, kk, ll)) and any((lattice_constant_a, relaxation)) and not any((qx, qy)):
+        qx, qy = composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2,
+                                                                                          composition,
+                                                                                          relaxation,
+                                                                                          lattice_constant_a, hh, kk,
+                                                                                          ll)
+    elif all((omega,ttheta)) and not any((qx,qy)):
+        qx=(np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
+        qy= (np.cos(omega * np.pi / 180) - np.cos((ttheta - omega) * np.pi / 180)) / 2
+        line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
+        print(line)
+    if all((hh,kk,ll))and not any((material_1, material_2, composition)) and not any((lattice_constant_a, relaxation)):
+        ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
+    elif all((hh,kk,ll))and not any((omega,ttheta)):
+        omega_and_ttheta_calculate(qx, qy)
+
+
 
 
 if __name__ == '__main__':
