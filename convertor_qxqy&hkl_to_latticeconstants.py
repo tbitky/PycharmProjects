@@ -65,25 +65,46 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10
 
 
 def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
-    omega_candidate_1=360*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
-    ttheta_candidate_1= 180*np.arcsin(2*qy - np.sin(2*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
-    ttheta_candidate_2= -180*np.arcsin(2*qy - np.sin(2*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi - 180
-    omega_candidate_2=360*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
-    ttheta_candidate_3=180*np.arcsin(2*qy - np.sin(2*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
-    ttheta_candidate_4= -180*np.arcsin(2*qy - np.sin(2*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi - 180
+    omega_candidate_1 = 360 * np.arctan(
+        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)) / np.pi
+    ttheta_candidate_1 = 180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
+        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
+        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)) / np.pi
+    ttheta_candidate_2 = -180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
+        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
+        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)) / np.pi - 180
+
+    omega_candidate_2 = 360 * np.arctan(
+        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)) / np.pi
+    ttheta_candidate_3 = 180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
+        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
+        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)) / np.pi
+    ttheta_candidate_4 = -180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
+        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
+        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
+                qx ** 2 + qx + qy ** 2)) / np.pi - 180
 
     if omega_candidate_1 <= 90:
-        if ttheta_candidate_1<=180:
-            omega=omega_candidate_1
-            ttheta=ttheta_candidate_1
-        elif ttheta_candidate_2 <=180:
+        if ttheta_candidate_1 <= 180:
+            omega = omega_candidate_1
+            ttheta = ttheta_candidate_1
+        elif ttheta_candidate_2 <= 180:
             omega = omega_candidate_1
             ttheta = ttheta_candidate_2
     elif omega_candidate_2 <= 90:
-        if ttheta_candidate_3<=180:
-            omega=omega_candidate_2
-            ttheta=ttheta_candidate_3
-        elif ttheta_candidate_4 <=180:
+        if ttheta_candidate_3 <= 180:
+            omega = omega_candidate_2
+            ttheta = ttheta_candidate_3
+        elif ttheta_candidate_4 <= 180:
             omega = omega_candidate_2
             ttheta = ttheta_candidate_4
     else:
@@ -110,7 +131,8 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
     except ValueError:
         print('input relaxation or lattice_constant_a')
     real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
-    qx = miller_h/abs(miller_h)*np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / real_a
+    qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
+            xray / 2 * 10 ** 10) / real_a
     qy = miller_l * (xray / 2 * 10 ** 10) / real_c
     line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
     print(line)
