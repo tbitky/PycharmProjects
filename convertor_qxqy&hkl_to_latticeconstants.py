@@ -1,15 +1,19 @@
 import numpy as np
 import sympy
 from sympy import re as real
+import pandas as pd
 
 """
 GaN |a,c,ν,Psp,e31,e33,C13,C33
 AlN |
 InN |
 """
+index = ['GaN', 'AlN', 'InN']
+columns = ['a', 'c', 'v', 'Psp', 'e31', 'e33', 'C13', 'C33']
 properties = [[3.1893, 5.1851, 0.203, -0.029, -0.49, 0.73, 100, 392],
               [3.1130, 4.9816, 0.225, -0.081, -0.60, 1.46, 127, 382],
               [3.5380, 5.7020, 0.291, -0.032, -0.57, 0.97, 94, 200]]
+properties_pd = pd.DataFrame(properties, index=index, columns=columns)
 
 
 def equation_calculate(a, b, a_measured, c_measured):
@@ -61,33 +65,42 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10
 
 
 def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
-    omega = sympy.Symbol('omega', positive=True)
-    ttheta = sympy.Symbol('ttheta', positive=True)
-    fx = qx - (sympy.cos(omega * sympy.pi / 180) - sympy.cos((ttheta - omega) * sympy.pi / 180)) / 2
-    fy = qy - (sympy.sin(omega * sympy.pi / 180) + sympy.sin((ttheta - omega) * sympy.pi / 180)) / 2
-    solves = sympy.solve([fx, fy], [omega, ttheta])
+    omega_candidate_1=360*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
+    ttheta_candidate_1= 180*np.arcsin(2*qy - np.sin(2*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
+    ttheta_candidate_2= -180*np.arcsin(2*qy - np.sin(2*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy - np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi - 180
+    omega_candidate_2=360*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
+    ttheta_candidate_3=180*np.arcsin(2*qy - np.sin(2*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi
+    ttheta_candidate_4= -180*np.arcsin(2*qy - np.sin(2*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))))/np.pi + 360*np.arctan((qy + np.sqrt(-qx**4 - 2*qx**2*qy**2 + qx**2 - qy**4 + qy**2))/(qx**2 + qx + qy**2))/np.pi - 180
 
-    for i, j in enumerate(solves):
-        calculated_omega = None
-        calculated_ttheta = None
-        for k, l in enumerate(j):
-            if l < 0:
-                break
-        else:
-            calculated_omega = solves[i][0]
-            calculated_ttheta = solves[i][1]
-    line = 'omega = {0:.6}[deg]\n2theta= {1:.6}[deg]'.format(calculated_omega, calculated_ttheta)
+    if omega_candidate_1 <= 90:
+        if ttheta_candidate_1<=180:
+            omega=omega_candidate_1
+            ttheta=ttheta_candidate_1
+        elif ttheta_candidate_2 <=180:
+            omega = omega_candidate_1
+            ttheta = ttheta_candidate_2
+    elif omega_candicate_2 <= 90:
+        if ttheta_candidate_3<=180:
+            omega=omega_candidate_2
+            ttheta=ttheta_candidate_3
+        elif ttheta_candidate_4 <=180:
+            omega = omega_candidate_2
+            ttheta = ttheta_candidate_4
+    else:
+        omega = None
+        ttheta = None
+    line = 'omega = {0:.6}[deg]\n2theta= {1:.6}[deg]'.format(omega, ttheta)
     print(line)
-    return calculated_omega, calculated_ttheta
+    return omega, ttheta
 
 
 def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
                                                                              relaxation,
                                                                              lattice_constant_a, miller_h, miller_k,
-                                                                             miller_l, xray=1.54 * 10 ** 10):
-    alloy_a = composition * properties[material_1][0] + (1 - composition) * properties[material_2][0]
-    alloy_c = composition * properties[material_1][1] + (1 - composition) * properties[material_2][1]
-    alloy_v = composition * properties[material_1][2] + (1 - composition) * properties[material_2][2]
+                                                                             miller_l, xray=1.54 * 10 ** -10):
+    alloy_a = composition * properties_pd.at[material_1, 'a'] + (1 - composition) * properties_pd.at[material_2, 'a']
+    alloy_c = composition * properties_pd.at[material_1, 'c'] + (1 - composition) * properties_pd.at[material_2, 'c']
+    alloy_v = composition * properties_pd.at[material_1, 'v'] + (1 - composition) * properties_pd.at[material_2, 'v']
 
     try:
         if lattice_constant_a:
@@ -97,9 +110,9 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
     except ValueError:
         print('input relaxation or lattice_constant_a')
     real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
-    qx = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / real_a)
-    qy = abs(miller_l * (xray / 2 * 10 ** 10) / real_c)
-    line='qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx,qy)
+    qx = miller_h/abs(miller_h)*np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / real_a
+    qy = miller_l * (xray / 2 * 10 ** 10) / real_c
+    line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
     print(line)
     return qx, qy
 
@@ -109,52 +122,54 @@ def main():
     input
     """
     try:
-        qx,qy=0,0
+        qx, qy = 0, 0
         qx, qy = map(float, input('qx[rlu] qy[rlu]入力:').split())
     except:
         pass
     try:
-        hh,kk,ll=0,0,0
+        hh, kk, ll = 0, 0, 0
         hh, kk, ll = map(int, input('h k l入力:').split())
     except:
         pass
     try:
-        material_1,material_2,composition='','',''
-        material_1, material_2, composition = map(int, input('半導体1 半導体2 組成入力：').split())
+        material_1, material_2, composition = '', '', ''
+        material_1, material_2, composition = map(str, input('半導体1 半導体2 組成入力：').split())
+        composition = float(composition) / 100
     except:
         pass
     try:
-        lattice_constant_a =0
-        lattice_constant_a = int(input('格子定数[Å]入力：'))
+        lattice_constant_a = 0
+        lattice_constant_a = float(input('格子定数[Å]入力：'))
     except:
         pass
     try:
-        relaxation=0
-        relaxation = int(input('緩和率[%]入力：'))
+        relaxation = 0
+        relaxation = float(input('緩和率[%]入力：'))
     except:
         pass
     try:
-        omega, ttheta =0,0
-        omega, ttheta = map(float, input('omega[deg] omega[deg]入力:').split())
+        omega, ttheta = 0, 0
+        omega, ttheta = map(float, input('omega[deg] ttheta[deg]入力:').split())
     except:
         pass
-    if all((material_1, material_2, composition, hh, kk, ll)) and any((lattice_constant_a, relaxation)) and not any((qx, qy)):
+    print('\n計算結果' + '-' * 20)
+    if all((material_1, material_2, composition, hh, kk, ll)) and any((lattice_constant_a, relaxation)) and not any(
+            (qx, qy)):
         qx, qy = composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2,
                                                                                           composition,
                                                                                           relaxation,
                                                                                           lattice_constant_a, hh, kk,
                                                                                           ll)
-    elif all((omega,ttheta)) and not any((qx,qy)):
-        qx=(np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
-        qy= (np.cos(omega * np.pi / 180) - np.cos((ttheta - omega) * np.pi / 180)) / 2
+    elif all((omega, ttheta)) and not any((qx, qy)):
+        qx = (np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
+        qy = (np.cos(omega * np.pi / 180) - np.cos((ttheta - omega) * np.pi / 180)) / 2
         line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
         print(line)
-    if all((hh,kk,ll))and not any((material_1, material_2, composition)) and not any((lattice_constant_a, relaxation)):
+    if all((hh, kk, ll)) and not any((material_1, material_2, composition)) and not any(
+            (lattice_constant_a, relaxation)):
         ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
-    elif all((hh,kk,ll))and not any((omega,ttheta)):
+    elif all((hh, kk, ll)) and not any((omega, ttheta)):
         omega_and_ttheta_calculate(qx, qy)
-
-
 
 
 if __name__ == '__main__':
