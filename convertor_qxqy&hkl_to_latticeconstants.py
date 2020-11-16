@@ -131,9 +131,15 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
     except ValueError:
         print('input relaxation or lattice_constant_a')
     real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
-    qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
+    if miller_h:
+        qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
             xray / 2 * 10 ** 10) / real_a
-    qy = miller_l * (xray / 2 * 10 ** 10) / real_c
+    else:
+        qx=0
+    if miller_l:
+        qy = miller_l * (xray / 2 * 10 ** 10) / real_c
+    else:
+        qy=0
     line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
     print(line)
     return qx, qy
@@ -183,14 +189,13 @@ def main():
                                                                                           lattice_constant_a, hh, kk,
                                                                                           ll)
     elif all((omega, ttheta)) and not any((qx, qy)):
-        qx = (np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
-        qy = (np.cos(omega * np.pi / 180) - np.cos((ttheta - omega) * np.pi / 180)) / 2
+        qx = (np.cos(omega * np.pi / 180) - np.cos((ttheta - omega) * np.pi / 180)) / 2
+        qy = (np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
         line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
         print(line)
-    if all((hh, kk, ll)) and not any((material_1, material_2, composition)) and not any(
-            (lattice_constant_a, relaxation)):
+    if any((hh, kk, ll)) and not all((material_1, material_2, composition,lattice_constant_a, relaxation)):
         ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
-    elif all((hh, kk, ll)) and not any((omega, ttheta)):
+    elif any((hh, kk, ll)) and not any((omega, ttheta)):
         omega_and_ttheta_calculate(qx, qy)
 
 
