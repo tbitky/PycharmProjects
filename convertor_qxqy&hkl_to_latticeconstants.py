@@ -175,8 +175,8 @@ def main():
     except:
         pass
     print('\n計算結果' + '-' * 20)
-    if all((material_1, material_2, composition, hh, kk, ll)) and any((lattice_constant_a, relaxation)) and not any(
-            (qx, qy)):
+    if all((material_1, material_2, composition)) and any((hh, kk, ll)) and \
+            any((lattice_constant_a, relaxation)) and not any((qx, qy)):
         qx, qy = composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2,
                                                                                           composition,
                                                                                           relaxation,
