@@ -195,7 +195,7 @@ def main():
         print(line)
     if any((hh, kk, ll)) and not all((material_1, material_2, composition,lattice_constant_a, relaxation)):
         ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
-    elif any((hh, kk, ll)) and not any((omega, ttheta)):
+    if any((hh, kk, ll)) and not any((omega, ttheta)):
         omega_and_ttheta_calculate(qx, qy)
 
 
