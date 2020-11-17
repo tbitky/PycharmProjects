@@ -140,7 +140,7 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
         qy = miller_l * (xray / 2 * 10 ** 10) / real_c
     else:
         qy=0
-    line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
+    line = 'qx={0:.5}[nm^-1]\nqy={1:.5}[nm^-1] '.format(qx, qy)
     print(line)
     return qx, qy
 
@@ -191,7 +191,7 @@ def main():
     elif all((omega, ttheta)) and not any((qx, qy)):
         qx = (np.cos(omega * np.pi / 180) - np.cos((ttheta - omega) * np.pi / 180)) / 2
         qy = (np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
-        line = 'qx={0:}[nm^-1]\nqy={1:}[nm^-1] '.format(qx, qy)
+        line = 'qx={0:.5}[nm^-1]\nqy={1:.5}[nm^-1] '.format(qx, qy)
         print(line)
     if any((hh, kk, ll)) and not all((material_1, material_2, composition,lattice_constant_a, relaxation)):
         ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
