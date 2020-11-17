@@ -1,78 +1,111 @@
-import xrayutilities as xu
-from xrayutilities.materials import elements as el
-from matplotlib.pylab import *
-from xrayutilities.materials.material import (Crystal, HexagonalElasticTensor)
-from xrayutilities.materials.spacegrouplattice import SGLattice
-import os
+
+from scipy.optimize import curve_fit
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import tkinter
 from tkinter import filedialog
+import xrayutilities as xu
+import numpy as np
+import pandas as pd
+import os
 
-GaN = Crystal("GaN",
-              SGLattice(186, 3.189, 5.186, atoms=[el.Ga, el.N],
-                        pos=[('2b', 0), ('2b', 3 / 8.)]),
-              HexagonalElasticTensor(390.e9, 145.e9, 106.e9, 398.e9, 105.e9),
-              thetaDebye=600)
-AlN = Crystal('AlN',
-              SGLattice(186, 3.1130, 4.9816, atoms=[el.Al, el.N],
-                        pos=[('2b', 0), ('2b', 3 / 8.)]),
-              xu.materials.HexagonalElasticTensor(410.e9, 149.e9, 99.e9, 389.e9, 125.e9),
-              thetaDebye=1150)
-InN = Crystal('AlN',
-              SGLattice(186, 3.5380, 5.7020, atoms=[el.In, el.N],
-                        pos=[('2b', 0), ('2b', 3 / 8.)]),
-              xu.materials.HexagonalElasticTensor(190.e9, 104.e9, 121.e9, 182.e9, 10.e9),
-              thetaDebye=660)
-AlGaN = xu.materials.material.Alloy(GaN, AlN, x=0.25)
+def func(x, *params):
 
-wavelength = xu.wavelength('CuKa1')
-offset = 0
+    #paramsの長さでフィッティングする関数の数を判別。
+    num_func = int(len(params)/3)
 
-sub = xu.simpack.Layer(xu.materials.Al2O3, 6300)
-lay1 = xu.simpack.Layer(GaN, 2300)
-lay2 = xu.simpack.Layer(AlN, 1, relaxation=0)
-lay3 = xu.simpack.Layer(AlGaN, 25, relaxation=0)
-epi = xu.simpack.LayerStack('list',  lay1 + lay2 + lay3)
+    #ガウス関数にそれぞれのパラメータを挿入してy_listに追加。
+    y_list = []
+    for i in range(num_func):
+        y = np.zeros_like(x)
+        param_range = list(range(3*i,3*(i+1),1))
+        amp = params[int(param_range[0])]
+        ctr = params[int(param_range[1])]
+        wid = params[int(param_range[2])]
+        y = y + amp * np.exp( -((x - ctr)/wid)**2)
+        y_list.append(y)
 
-thetaMono = arcsin(wavelength / (2 * xu.materials.Ge.planeDistance(2, 2, 0)))
-Cmono = cos(2 * thetaMono)
-dyn = xu.simpack.DynamicalModel(epi, I0=1.5e9, background=0,
-                                resolution_width=2e-3, polarization='both',
-                                Cmono=Cmono)
-fitmdyn = xu.simpack.FitModel(dyn)
-fitmdyn.set_param_hint('GaN_thickness', vary=True)
-fitmdyn.set_param_hint('GaN_a', vary=True)
-fitmdyn.set_param_hint('GaN_c', vary=True)
-fitmdyn.set_param_hint('AlN_thickness', vary=True)
-fitmdyn.set_param_hint('AlN_a', vary=True,)
-fitmdyn.set_param_hint('AlN_c', vary=True)
-fitmdyn.set_param_hint('GaN_0_75_AlN_0_25__thickness', vary=True)
-fitmdyn.set_param_hint('GaN_0_75_AlN_0_25__a', vary=True)
-fitmdyn.set_param_hint('GaN_0_75_AlN_0_25__c', vary=True)
-fitmdyn.set_param_hint('GaN_0_75_AlN_0_25__at0_Ga_2b_occupation', vary=True)
-fitmdyn.set_param_hint('GaN_0_75_AlN_0_25__at2_Al_2b_occupation', vary=True)
-fitmdyn.set_param_hint('resolution_width', vary=True)
-params = fitmdyn.make_params()
+    #y_listに入っているすべてのガウス関数を重ね合わせる。
+    y_sum = np.zeros_like(x)
+    for i in y_list:
+        y_sum = y_sum + i
 
-# plot experimental data
-f = figure(figsize=(7, 5))
+    #最後にバックグラウンドを追加。
+    y_sum = y_sum + params[-1]
 
-root = tkinter.Tk()
-root.withdraw()
-fTyp = [("xrdファイル", "*.xrdml")]
-iDir = os.path.abspath(os.path.dirname(r"\\Sirius\carbon-nas\SR4000\003_XRD"))
-filepath = filedialog.askopenfilename(filetypes=fTyp, initialdir=iDir)
-filename = os.path.basename(filepath)
-dirname = os.path.dirname(filepath)
-d = xu.io.panalytical_xml.XRDMLFile(filename,path=dirname)
-scan = d.scans[-1]
-tt = scan.scanmot - offset
-semilogy(tt, scan.int, 'o-', ms=3, label='data')
+    return y_sum
 
-# perform fit and plot the result
-fitmdyn.lmodel.set_hkl((0, 0, 2))
-ai = (d.scans[-1].scanmot - offset) / 2
-fitr = fitmdyn.fit(d.scans[-1].int, params, ai)
-print(fitr.fit_report())  # for older lmfit use: lmfit.report_fit(fitr)
+def fit_plot(x, *params):
+    num_func = int(len(params)/3)
+    y_list = []
+    for i in range(num_func):
+        y = np.zeros_like(x)
+        param_range = list(range(3*i,3*(i+1),1))
+        amp = params[int(param_range[0])]
+        ctr = params[int(param_range[1])]
+        wid = params[int(param_range[2])]
+        y = y + amp * np.exp( -((x - ctr)/wid)**2) + params[-1]
+        y_list.append(y)
+    return y_list
 
 
-plt.show()
+
+
+def main():
+    """
+    ファイルダイアログを開いてfilepathに格納
+    """
+    root = tkinter.Tk()
+    root.withdraw()
+    fTyp = [("xrdファイル", "*.xrdml")]
+    iDir = os.path.abspath(os.path.dirname(r"\\Sirius\carbon-nas\SR4000\003_XRD"))
+    filepath = filedialog.askopenfilename(filetypes=fTyp, initialdir=iDir)
+    """
+    半値幅計算
+    """
+
+    xrdfile = xu.io.panalytical_xml.XRDMLFile(os.path.basename(filepath), path=os.path.dirname(filepath))
+    scanmot, intensity = (
+        xu.io.panalytical_xml.getxrdml_scan(filetemplate=xrdfile.filename, motors=xrdfile.scan.scanmotname,
+                                            path=os.path.dirname(xrdfile.full_filename)))
+    count_time = xrdfile.scan.ddict['countTime']
+    notzero_index=np.where(intensity>0)
+    scanmot=scanmot[notzero_index]/2
+    intensity=np.log10(intensity[notzero_index])
+
+    # 初期値のリストを作成
+    # [amp,ctr,wid]
+    guess = []
+    guess.append([5.92, 17.27223, 0.01225])
+    guess.append([2.53, 17.4352, 0.7095])
+
+
+    # バックグラウンドの初期値
+    background = 0.7
+
+    # 初期値リストの結合
+    guess_total = []
+    for i in guess:
+        guess_total.extend(i)
+    guess_total.append(background)
+
+    popt, pcov = curve_fit(func, scanmot, intensity, p0=guess_total)
+
+    fit = func(scanmot, *popt)
+    plt.scatter(scanmot, intensity, s=20)
+    plt.plot(scanmot, fit, ls='-', c='black', lw=1)
+
+    y_list = fit_plot(scanmot, *popt)
+    baseline = np.zeros_like(scanmot) + popt[-1]
+    for n, i in enumerate(y_list):
+        plt.fill_between(scanmot, i, baseline, facecolor=cm.rainbow(n / len(y_list)), alpha=0.6)
+    qy = (np.sin(popt[4] * np.pi / 180) + np.sin((popt[4]) * np.pi / 180)) / 2
+    c = abs(2 * (1.54 / 2 * 10 ** 10) / qy)
+    thickness=1.54/10/2/(np.sin(popt[4]+popt[5]/np.sqrt(2))-np.sin(popt[4]-popt[5]/np.sqrt(2)))
+    print(popt[3:6])
+    print(thickness,c)
+    plt.show()
+
+if __name__ == '__main__':
+    main()
