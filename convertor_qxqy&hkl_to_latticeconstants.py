@@ -41,8 +41,14 @@ def equation_calculate(a, b, a_measured, c_measured):
 
 
 def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10 ** -10):
-    a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / qx)
-    c = abs(miller_l * (xray / 2 * 10 ** 10) / qy)
+    if qx != 0:
+        a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / qx)
+    else:
+        a=0
+    if qy != 0:
+        c = abs(miller_l * (xray / 2 * 10 ** 10) / qy)
+    else:
+        qy=0
     print("測定値　　　      a={0:.3f}Å, c={1:.3f}Å".format(a, c))
     algan_solution = equation_calculate(1, 0, a, c)
     ingan_solution = equation_calculate(2, 0, a, c)
