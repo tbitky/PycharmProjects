@@ -93,7 +93,7 @@ def main():
     popt, pcov = curve_fit(func, scanmot, intensity, p0=guess_total)
 
     fit = func(scanmot, *popt)
-    plt.scatter(scanmot, intensity, s=20)
+    plt.scatter(scanmot, intensity, s=5)
     plt.plot(scanmot, fit, ls='-', c='black', lw=1)
 
     y_list = fit_plot(scanmot, *popt)

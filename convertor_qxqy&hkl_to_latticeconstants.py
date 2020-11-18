@@ -40,15 +40,13 @@ def equation_calculate(a, b, a_measured, c_measured):
         return False,
 
 
-def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10 ** -10):
-    if qx != 0:
+def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10 ** -10, a=0, c=0):
+    if qx != 0 and a == 0:
         a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / qx)
-    else:
-        a=0
-    if qy != 0:
+
+    if qy != 0 and c == 0:
         c = abs(miller_l * (xray / 2 * 10 ** 10) / qy)
-    else:
-        qy=0
+
     print("測定値　　　      a={0:.3f}Å, c={1:.3f}Å".format(a, c))
     algan_solution = equation_calculate(1, 0, a, c)
     ingan_solution = equation_calculate(2, 0, a, c)
@@ -139,13 +137,13 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
     real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
     if miller_h:
         qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
-            xray / 2 * 10 ** 10) / real_a
+                xray / 2 * 10 ** 10) / real_a
     else:
-        qx=0
+        qx = 0.0
     if miller_l:
         qy = miller_l * (xray / 2 * 10 ** 10) / real_c
     else:
-        qy=0
+        qy = 0.0
     line = 'qx={0:.5}[nm^-1]\nqy={1:.5}[nm^-1] '.format(qx, qy)
     print(line)
     return qx, qy
@@ -199,8 +197,11 @@ def main():
         qy = (np.sin(omega * np.pi / 180) + np.sin((ttheta - omega) * np.pi / 180)) / 2
         line = 'qx={0:.5}[nm^-1]\nqy={1:.5}[nm^-1] '.format(qx, qy)
         print(line)
-    if any((hh, kk, ll)) and not all((material_1, material_2, composition,lattice_constant_a, relaxation)):
-        ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
+    if any((hh, kk, ll)) and not all((material_1, material_2, composition, lattice_constant_a, relaxation)):
+        if lattice_constant_a != 0:
+            ternary_a_c_r_calculate(qx, qy, hh, kk, ll, a=lattice_constant_a)
+        else:
+            ternary_a_c_r_calculate(qx, qy, hh, kk, ll)
     if any((hh, kk, ll)) and not any((omega, ttheta)):
         omega_and_ttheta_calculate(qx, qy)
 
