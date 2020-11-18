@@ -156,6 +156,8 @@ def main():
     try:
         qx, qy = 0, 0
         qx, qy = map(float, input('qx[rlu] qy[rlu]入力:').split())
+        # qx=qx*1.54/4/np.pi
+        # qy=qy*1.54/4/np.pi
     except:
         pass
     try:
