@@ -30,8 +30,8 @@ def equation_calculate(a, b, a_measured, c_measured):
         solution = solutions[0]
         lattice_constant_a = solution * properties[a][0] + (1 - solution) * properties[b][0]
         lattice_constant_c = solution * properties[a][1] + (1 - solution) * properties[b][1]
-        delta_a = (a_measured - lattice_constant_a) / lattice_constant_a * 100
-        delta_c = (c_measured - lattice_constant_c) / lattice_constant_c * 100
+        delta_a = float((a_measured - lattice_constant_a) / lattice_constant_a * 100)
+        delta_c = float((c_measured - lattice_constant_c) / lattice_constant_c * 100)
         if delta_a * delta_c > 0:
             return False
         else:
@@ -40,7 +40,7 @@ def equation_calculate(a, b, a_measured, c_measured):
         return False,
 
 
-def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10 ** -10, a=0, c=0):
+def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, xray=1.54 * 10 ** -10, a=0.0, c=0.0):
     if qx != 0 and a == 0:
         a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (xray / 2 * 10 ** 10) / qx)
 
