@@ -23,8 +23,8 @@ def func(x, *params):
         ctr = params[int(param_range[1])]
         wid = params[int(param_range[2])]
         stdrd_dist = np.exp(-((x - ctr) / wid) ** 2)
-        notzero_index = np.where(stdrd_dist > 0)
-        y[notzero_index] = y[notzero_index] + np.log10(amp) * stdrd_dist[notzero_index] + np.log10(params[-1])
+        notzero_index = np.where(stdrd_dist >4/amp)
+        y[notzero_index] = y[notzero_index] + np.log10(amp) * stdrd_dist[notzero_index]
         y_list.append(y)
 
     # y_listに入っているすべてのガウス関数を重ね合わせる。
@@ -48,8 +48,8 @@ def fit_plot(x, *params):
         ctr = params[int(param_range[1])]
         wid = params[int(param_range[2])]
         stdrd_dist = np.exp(-((x - ctr) / wid) ** 2)
-        notzero_index = np.where(stdrd_dist > 0.012)
-        y[notzero_index] = y[notzero_index] + np.log10(amp) * stdrd_dist[notzero_index] + np.log10(params[-1])
+        notzero_index = np.where(stdrd_dist > 1/amp)
+        y[notzero_index] = y[notzero_index] + np.log10(amp) * stdrd_dist[notzero_index]
         y_list.append(y)
     return y_list
 
@@ -72,9 +72,11 @@ def main():
         xu.io.panalytical_xml.getxrdml_scan(filetemplate=xrdfile.filename, motors=xrdfile.scan.scanmotname,
                                             path=os.path.dirname(xrdfile.full_filename)))
     count_time = xrdfile.scan.ddict['countTime']
-    notzero_index = np.where(intensity > 0)
+
     scanmot = scanmot / 2
     intensity = np.log10(intensity)
+    minas_index = np.where(intensity < 0)
+    intensity[minas_index]=0
 
     # 初期値のリストを作成
     # [amp,ctr,wid]
@@ -91,30 +93,27 @@ def main():
         guess_total.extend(i)
     guess_total.append(background)
 
-    y_list = fit_plot(scanmot[notzero_index], *guess_total)
-    baseline = np.zeros_like(scanmot[notzero_index]) + np.log10(guess_total[-1])
-    for n, i in enumerate(y_list):
-        plt.fill_between(scanmot[notzero_index], i, baseline, facecolor=cm.rainbow(n / len(y_list)), alpha=0.6)
-    plt.show()
 
-    popt, pcov = curve_fit(func, scanmot[notzero_index], intensity[notzero_index], p0=guess_total)
+
+    popt, pcov = curve_fit(func, scanmot, intensity, p0=guess_total)
 
     fit = func(scanmot, *popt)
     plt.scatter(scanmot, intensity, s=5)
     plt.plot(scanmot, fit, ls='-', c='black', lw=1)
 
     y_list = fit_plot(scanmot, *popt)
-    baseline = np.zeros_like(scanmot) + np.log10(popt[-1])
+    baseline = np.zeros_like(scanmot)
     for n, i in enumerate(y_list):
         plt.fill_between(scanmot, i, baseline, facecolor=cm.rainbow(n / len(y_list)), alpha=0.6)
     qy = (np.sin(popt[4] * np.pi / 180) + np.sin((popt[4]) * np.pi / 180)) / 2
-    c = abs(2 * (1.54 / 2 * 10 ** 10) / qy)
+    c = abs(2 * (1.54 / 2 ) / qy)
 
-    algan=func(scanmot, *popt[3:6], 0)
-    notzero_gaus=np.where(algan>0.012)
-    omega1=scanmot[notzero_gaus[0]]
-    omega2=scanmot[notzero_gaus[-1]]
-    thickness = 1.54 / 10 / 2 / (np.sin(omega2/180/np.pi) - np.sin(omega1/180/np.pi))
+    algan=func(scanmot, *popt[3:])
+    bottom=np.log10(popt[3]*0.01)
+    notzero_gaus=np.where(algan>bottom)
+    omega1=scanmot[notzero_gaus[0][0]]
+    omega2=scanmot[notzero_gaus[0][-1]]
+    thickness = 1.54 / 10 / 2 / (np.sin(omega2/180*np.pi) - np.sin(omega1/180*np.pi))
     print(popt[3:6])
     print(thickness, c)
     plt.show()

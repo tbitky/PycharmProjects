@@ -134,7 +134,7 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
             real_a = alloy_a * relaxation / 100
     except ValueError:
         print('input relaxation or lattice_constant_a')
-    real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
+    real_c = alloy_c * (1- (real_a - alloy_a) / alloy_a / alloy_v)
     if miller_h:
         qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
                 xray / 2 * 10 ** 10) / real_a
@@ -173,7 +173,8 @@ def main():
         pass
     try:
         lattice_constant_a = 0
-        lattice_constant_a = float(input('格子定数[Å]入力：'))
+        lattice_constant_a = 0
+        lattice_constant_a ,lattice_constant_c =  map(float, input('a軸c軸格子定数[Å]入力：').split())
     except:
         pass
     try:
