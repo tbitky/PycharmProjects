@@ -113,7 +113,7 @@ def main():
     notzero_gaus=np.where(algan>bottom)
     omega1=scanmot[notzero_gaus[0][0]]
     omega2=scanmot[notzero_gaus[0][-1]]
-    thickness = 1.54 / 10 / 2 / (np.sin(omega2/180*np.pi) - np.sin(omega1/180*np.pi))
+    thickness = 1.54 / 10 / (np.sin(omega2/180*np.pi) - np.sin(omega1/180*np.pi))
     plt.vlines([omega1,omega2],0,np.max(np.log10(intensity)))
     print(popt[3:6])
     print(thickness, c)
