@@ -98,8 +98,10 @@ def main():
     popt, pcov = curve_fit(func, scanmot, intensity, p0=guess_total)
 
     fit = func(scanmot, *popt)
-    plt.scatter(scanmot, intensity, s=5)
+    plt.plot(scanmot, intensity, linestyle='solid')
     plt.plot(scanmot, fit, ls='-', c='black', lw=1)
+    thickness_fringe=intensity-fit
+    plt.plot(scanmot,thickness_fringe ,color='red',  linestyle='solid')
 
     y_list = fit_plot(scanmot, *popt)
     baseline = np.zeros_like(scanmot)
@@ -109,11 +111,12 @@ def main():
     c = abs(2 * (1.54 / 2 ) / qy)
 
     algan=func(scanmot, *popt[3:])
-    bottom=np.log10(popt[3]*0.01)
+    bottom=np.log10(popt[3]*0.006)
     notzero_gaus=np.where(algan>bottom)
     omega1=scanmot[notzero_gaus[0][0]]
     omega2=scanmot[notzero_gaus[0][-1]]
-    thickness = 1.54 / 10 / 2 / (np.sin(omega2/180*np.pi) - np.sin(omega1/180*np.pi))
+    # thickness = 1.54 / 10  / (np.sin(omega2/180*np.pi) - np.sin(omega1/180*np.pi))
+    thickness = 1.54 / 10  / ((omega2-omega1)*np.pi/180)/np.cos(popt[4] * np.pi / 180)
     print(popt[3:6])
     print(thickness, c)
     plt.show()
