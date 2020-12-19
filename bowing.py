@@ -48,24 +48,41 @@ def fine_round(x, y=0):
 
 def bowing_direction(data):
     horizon = (data[0] + data[-1]) / 2
-    peak_cut = 5
-    maxid = list(signal.argrelmax(data, order=int(len(data) / 3)))
-    minid = list(signal.argrelmin(data, order=int(len(data) / 3)))
-    refined_maxid = [i for i in maxid[0] if data[i] - horizon >= peak_cut]
-    refined_minid = [i for i in minid[0] if data[i] - horizon <= peak_cut]
-    if len(refined_maxid) + len(refined_minid) == 0:
-        direction = '-'
-    elif len(refined_maxid) + len(refined_minid) == 1:
-        if refined_maxid:
+    peak_cut = 3
+    minimum_width=20
+    max = 'max'
+    min = 'min'
+    left_index = [0, ]
+    right_index = []
+    direction = '-'
+    greater_or_less = []
+    for i in range(len(data) - 1):
+        if (data[i] - horizon) * (data[i + 1] - horizon) < 0 and i - left_index[len(right_index)] >= minimum_width:
+            right_index.append(i)
+            if i<len(data)-2:
+                left_index.append(i + 1)
+    if len(right_index)<len(left_index):
+        right_index.append(len(data) - 1)
+
+    for i in range(len(left_index)):
+        maxvalue = np.max(data[left_index[i]:right_index[i]])
+        minvalue = np.min(data[left_index[i]:right_index[i]])
+        if maxvalue - horizon >= peak_cut and maxvalue + minvalue >= 2 * horizon:
+            greater_or_less.append(max)
+        elif minvalue - horizon <= -1 * peak_cut and maxvalue + minvalue <= 2 * horizon:
+            greater_or_less.append(min)
+
+    if len(greater_or_less) == 1:
+        if greater_or_less[0] == max:
             direction = '凸'
-        else:
+        elif greater_or_less[0] == min:
             direction = '凹'
-    elif len(refined_maxid) + len(refined_minid) == 2:
+    elif len(greater_or_less) == 2:
         direction = 'N'
-    elif len(refined_maxid) + len(refined_minid) == 3:
-        if len(refined_maxid) >= len(refined_minid):
+    elif len(greater_or_less) == 3:
+        if greater_or_less[0] == max:
             direction = 'M'
-        else:
+        elif greater_or_less[0] == min:
             direction = 'W'
     else:
         direction = False
