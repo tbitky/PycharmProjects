@@ -96,6 +96,10 @@ def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
                 qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
         (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
                 qx ** 2 + qx + qy ** 2)) / np.pi - 180
+    if np.abs(omega_candidate_1-90) <= np.abs( omega_candidate_2 - 90):
+        nearest_90deg_first=omega_candidate_1
+    elif np.abs(omega_candidate_1-90) > np.abs( omega_candidate_2 - 90):
+        nearest_90deg_first = omega_candidate_2
 
     if 0 <= omega_candidate_1 <= 180:
         if 0<=ttheta_candidate_1 <= 180:
