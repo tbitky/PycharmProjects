@@ -112,25 +112,29 @@ def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
                 qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
         (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
                 qx ** 2 + qx + qy ** 2)) / np.pi - 180
+
+    sort=range(4)
     if np.abs(omega_ttheta_candidates[0][0] - 90) >= np.abs(omega_ttheta_candidates[0][2] - 90):
         sort=[2, 3, 0, 1]
-        omega_ttheta_candidates = omega_ttheta_candidates[sort,sort]
+
     for i  in range(int(len(omega_ttheta_candidates)/2)):
         if np.abs(omega_ttheta_candidates[2*i][1] - 180) >= np.abs(omega_ttheta_candidates[2*i+1][1] - 180):
-            sort=[]
-            omega_ttheta_candidates=omega_ttheta_candidates[:]
+            temp=sort
+            sort[2*i+1]=temp[2+i]
+            sort[2 * i ] =temp[2*i+1]
+    omega_ttheta_candidates = omega_ttheta_candidates[sort, sort]
 
 
 
 
-    if 0 <= omega_candidate_1 <= 180:
-        if 0 <= ttheta_candidate_1 <= 180:
+    if 0 <= omega_ttheta_candidates[0][0] <= 180:
+        if 0 <= omega_ttheta_candidates[0][1] <= 180:
             omega = omega_candidate_1
             ttheta = ttheta_candidate_1
         elif 0 <= ttheta_candidate_2 <= 180:
             omega = omega_candidate_1
             ttheta = ttheta_candidate_2
-    elif 0 <= omega_candidate_2 <= 180:
+    elif 0 <= omega_ttheta_candidates[2][0] <= 180:
         if 0 <= ttheta_candidate_3 <= 180:
             omega = omega_candidate_2
             ttheta = ttheta_candidate_3
