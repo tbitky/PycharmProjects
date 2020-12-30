@@ -113,41 +113,63 @@ def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
         (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
                 qx ** 2 + qx + qy ** 2)) / np.pi - 180
 
-    sort=range(4)
+    sort = range(4)
     if np.abs(omega_ttheta_candidates[0][0] - 90) >= np.abs(omega_ttheta_candidates[0][2] - 90):
-        sort=[2, 3, 0, 1]
+        sort = [2, 3, 0, 1]
 
-    for i  in range(int(len(omega_ttheta_candidates)/2)):
-        if np.abs(omega_ttheta_candidates[2*i][1] - 180) >= np.abs(omega_ttheta_candidates[2*i+1][1] - 180):
-            temp=sort
-            sort[2*i+1]=temp[2+i]
-            sort[2 * i ] =temp[2*i+1]
+    for i in range(int(len(omega_ttheta_candidates) / 2)):
+        if np.abs(omega_ttheta_candidates[2 * i][1] - 180) >= np.abs(omega_ttheta_candidates[2 * i + 1][1] - 180):
+            temp = sort
+            sort[2 * i + 1] = temp[2 + i]
+            sort[2 * i] = temp[2 * i + 1]
     omega_ttheta_candidates = omega_ttheta_candidates[sort, sort]
 
+    ttheta_upper_limit = 159.5285
+    ttheta_lower_limit = -13.5795
+    omega_upper_limit = 117.5285
+    omega_lower_limit = -8.2625
+    omega = []
+    ttheta = []
 
-
-
-    if 0 <= omega_ttheta_candidates[0][0] <= 180:
-        if 0 <= omega_ttheta_candidates[0][1] <= 180:
-            omega = omega_candidate_1
-            ttheta = ttheta_candidate_1
-        elif 0 <= ttheta_candidate_2 <= 180:
-            omega = omega_candidate_1
-            ttheta = ttheta_candidate_2
-    elif 0 <= omega_ttheta_candidates[2][0] <= 180:
-        if 0 <= ttheta_candidate_3 <= 180:
-            omega = omega_candidate_2
-            ttheta = ttheta_candidate_3
-        elif 0 <= ttheta_candidate_4 <= 180:
-            omega = omega_candidate_2
-            ttheta = ttheta_candidate_4
-    else:
-        omega = None
-        ttheta = None
-    line = 'omega = {0:.6}[deg]\n2theta= {1:.6}[deg]'.format(omega, ttheta)
+    for i in range(4):
+        if omega_lower_limit <= omega_ttheta_candidates[i][0] <= omega_upper_limit and \
+                ttheta_lower_limit <= omega_ttheta_candidates[i][1] <= ttheta_upper_limit:
+            omega.append(omega_ttheta_candidates[i][0])
+            ttheta.append(omega_ttheta_candidates[i][1])
+    line = ''
+    for i in range(len(omega)):
+        line += 'omega = {0[i]:.6}[deg] 2theta= {1[i]:.6}[deg]\n'.format(omega, ttheta)
     print(line)
     return omega, ttheta
 
+def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
+                                                                             relaxation,
+                                                                             lattice_constant_a, miller_h, miller_k,
+                                                                             miller_l, xray=1.54 * 10 ** -10):
+    alloy_a = composition * properties.at[material_1, 'a'] + (1 - composition) * properties.at[material_2, 'a']
+    alloy_c = composition * properties.at[material_1, 'c'] + (1 - composition) * properties.at[material_2, 'c']
+    alloy_v = composition * properties.at[material_1, 'v'] + (1 - composition) * properties.at[material_2, 'v']
+
+    try:
+        if lattice_constant_a:
+            real_a = lattice_constant_a
+        elif relaxation:
+            real_a = alloy_a * relaxation / 100
+    except ValueError:
+        print('input relaxation or lattice_constant_a')
+    real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
+    if miller_h:
+        qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
+                xray / 2 * 10 ** 10) / real_a
+    else:
+        qx = 0.0
+    if miller_l:
+        qy = miller_l * (xray / 2 * 10 ** 10) / real_c
+    else:
+        qy = 0.0
+    line = 'qx={0:.5}[nm^-1]\nqy={1:.5}[nm^-1] '.format(qx, qy)
+    print(line)
+    return qx, qy
 
 def fine_round(x, y=0):
     round_x = Decimal(str(x)).quantize(Decimal(str(y)), rounding=ROUND_HALF_UP)
