@@ -79,41 +79,31 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, a=0.0, c=0.0, 
     return a, c
 
 
-def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
+def omega_and_ttheta_calculate(qx, qy):
     omega_ttheta_candidates = np.array([])
-    omega_ttheta_candidates[0][0] = 360 * np.arctan(
-        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)) / np.pi
+    A = np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)
+    B = (qx ** 2 + qx + qy ** 2)
 
-    omega_ttheta_candidates[0][1] = 180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
-        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
-        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)) / np.pi
+    omega_ttheta_candidates[0][0] = 2 * np.arctan((qy - A) / B)
     omega_ttheta_candidates[1][0] = omega_ttheta_candidates[0][0]
-    omega_ttheta_candidates[1][1] = -180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
-        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
-        (qy - np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)) / np.pi - 180
-
-    omega_ttheta_candidates[2][0] = 360 * np.arctan(
-        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)) / np.pi
-
-    omega_ttheta_candidates[2][1] = 180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
-        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
-        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)) / np.pi
+    omega_ttheta_candidates[2][0] = 2 * np.arctan((qy + A) / B)
     omega_ttheta_candidates[3][0] = omega_ttheta_candidates[2][0]
-    omega_ttheta_candidates[3][1] = -180 * np.arcsin(2 * qy - np.sin(2 * np.arctan(
-        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)))) / np.pi + 360 * np.arctan(
-        (qy + np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)) / (
-                qx ** 2 + qx + qy ** 2)) / np.pi - 180
 
-    sort = range(4)
+    omega_ttheta_candidates[0][1] = np.arcsin(
+        2 * qy - np.sin(2 * np.arctan((qy - A) / B))) + omega_ttheta_candidates[0][0]
+
+    omega_ttheta_candidates[1][1] = - np.arcsin(
+        2 * qy - np.sin(2 * np.arctan((qy - A) / B))) + omega_ttheta_candidates[0][1] - np.pi
+
+    omega_ttheta_candidates[2][1] = np.arcsin(
+        2 * qy - np.sin(2 * np.arctan((qy + A) / B))) + omega_ttheta_candidates[2][0]
+
+    omega_ttheta_candidates[3][1] = - np.arcsin(
+        2 * qy - np.sin(2 * np.arctan((qy + A) / B))) + omega_ttheta_candidates[3][0] - np.pi
+
+    omega_ttheta_candidates *= 180 / np.pi
+
+    sort = range((omega_ttheta_candidates.shape[0]))
     if np.abs(omega_ttheta_candidates[0][0] - 90) >= np.abs(omega_ttheta_candidates[0][2] - 90):
         sort = [2, 3, 0, 1]
 
@@ -131,7 +121,7 @@ def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
     omega = []
     ttheta = []
 
-    for i in range(4):
+    for i in range(len(sort)):
         if omega_lower_limit <= omega_ttheta_candidates[i][0] <= omega_upper_limit and \
                 ttheta_lower_limit <= omega_ttheta_candidates[i][1] <= ttheta_upper_limit:
             omega.append(omega_ttheta_candidates[i][0])
@@ -142,10 +132,12 @@ def omega_and_ttheta_calculate(qx, qy, xray=1.54 * 10 ** -10):
     print(line)
     return omega, ttheta
 
+
 def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
                                                                              relaxation,
                                                                              lattice_constant_a, miller_h, miller_k,
-                                                                             miller_l, xray=1.54 * 10 ** -10):
+                                                                             miller_l, xray=wavelength,
+                                                                             magnitude=Q_scan_rlu_value):
     alloy_a = composition * properties.at[material_1, 'a'] + (1 - composition) * properties.at[material_2, 'a']
     alloy_c = composition * properties.at[material_1, 'c'] + (1 - composition) * properties.at[material_2, 'c']
     alloy_v = composition * properties.at[material_1, 'v'] + (1 - composition) * properties.at[material_2, 'v']
@@ -157,19 +149,22 @@ def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(mat
             real_a = alloy_a * relaxation / 100
     except ValueError:
         print('input relaxation or lattice_constant_a')
+
     real_c = alloy_c * (1 - (real_a - alloy_a) / alloy_a / alloy_v)
     if miller_h:
-        qx = miller_h / abs(miller_h) * np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * (
-                xray / 2 * 10 ** 10) / real_a
+        qx = magnitude * miller_h / abs(miller_h) * np.sqrt(
+            (miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * xray / real_a
+
     else:
         qx = 0.0
     if miller_l:
-        qy = miller_l * (xray / 2 * 10 ** 10) / real_c
+        qy = magnitude * miller_l * xray / real_c
     else:
         qy = 0.0
     line = 'qx={0:.5}[nm^-1]\nqy={1:.5}[nm^-1] '.format(qx, qy)
     print(line)
     return qx, qy
+
 
 def fine_round(x, y=0):
     round_x = Decimal(str(x)).quantize(Decimal(str(y)), rounding=ROUND_HALF_UP)
