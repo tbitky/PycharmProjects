@@ -155,8 +155,10 @@ def main():
     fig.colorbar(scalarMap0, ax=ax)
     plt.subplots_adjust(right=0.85)
     plt.subplots_adjust(wspace=0.1)
-    ax.set_xlabel('qx(${nm^{-1}}$)')
-    ax.set_ylabel('qy(${nm^{-1}}$)')
+    ax.set_xticklabels(fontname='Times New Roman')
+    ax.set_yticklabels(fontname='Times New Roman')
+    ax.set_xlabel('qx(${nm^{-1}}$)',fontname='Times New Roman')
+    ax.set_ylabel('qy(${nm^{-1}}$)',fontname='Times New Roman')
 
     plt.show()
 
