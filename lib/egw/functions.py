@@ -12,7 +12,7 @@ wavelength = xu.wavelength('CuKa1')
 Q_scan_rlu_value = 0.5
 
 
-def composition_calculate(material_1, material_2, a_measured, c_measured, means='poisson'):
+def composition_calculate(material_1, material_2, a_measured, c_measured, means='elastic'):
     x = sympy.Symbol('x')
 
     def vegard_equation(index_1, index_2, variable_x=x):
@@ -39,15 +39,15 @@ def composition_calculate(material_1, material_2, a_measured, c_measured, means=
     solve = np.array(sympy.solve(equation, x))
     real_solves = list(map(real, solve))
 
-    solutions = [i for i in real_solves if 1 >= i >= 0]
-
-    if solutions:
+    solutions = np.array([i for i in real_solves if 1 >= i >= -10 ** -4])
+    solutions = np.where(solutions < 0, 0, solutions)
+    if solutions or solutions == 0:
         solution = solutions[0] * 100
         lattice_constant_a = solution * properties.at[material_1, 'a'] + (1 - solution) * properties.at[material_2, 'a']
         lattice_constant_c = solution * properties.at[material_1, 'c'] + (1 - solution) * properties.at[material_2, 'c']
         delta_a = (a_measured - lattice_constant_a) / lattice_constant_a * 100
         delta_c = (c_measured - lattice_constant_c) / lattice_constant_c * 100
-        if delta_a * delta_c > 0:
+        if delta_a * delta_c > 0.001:
             return False
         else:
             return solution, lattice_constant_a, lattice_constant_c, delta_a, delta_c
@@ -80,7 +80,7 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, a=0.0, c=0.0, 
 
 
 def omega_and_ttheta_calculate(qx, qy):
-    omega_ttheta_candidates = np.empty((4,2))
+    omega_ttheta_candidates = np.empty((4, 2))
     A = np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)
     B = (qx ** 2 + qx + qy ** 2)
 
@@ -103,7 +103,7 @@ def omega_and_ttheta_calculate(qx, qy):
 
     omega_ttheta_candidates *= 180 / np.pi
 
-    sort = range((omega_ttheta_candidates.shape[0]))
+    sort = np.arange((omega_ttheta_candidates.shape[0]))
     if np.abs(omega_ttheta_candidates[0][0] - 90) >= np.abs(omega_ttheta_candidates[2][0] - 90):
         sort = [2, 3, 0, 1]
 
@@ -112,7 +112,7 @@ def omega_and_ttheta_calculate(qx, qy):
             temp = sort
             sort[2 * i + 1] = temp[2 + i]
             sort[2 * i] = temp[2 * i + 1]
-    omega_ttheta_candidates = omega_ttheta_candidates[sort, sort]
+    omega_ttheta_candidates = omega_ttheta_candidates[sort, :]
 
     ttheta_upper_limit = 159.5285
     ttheta_lower_limit = -13.5795
@@ -128,16 +128,16 @@ def omega_and_ttheta_calculate(qx, qy):
             ttheta.append(omega_ttheta_candidates[i][1])
     line = ''
     for i in range(len(omega)):
-        line += 'omega = {0[i]:.6}[deg] 2theta= {1[i]:.6}[deg]\n'.format(omega, ttheta)
+        line = 'omega = {0:.6}[deg] 2theta= {1:.6}[deg]'.format(omega[i], ttheta[i])
     print(line)
     return omega, ttheta
 
 
 def composition_and_relaxation_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
-                                                                             relaxation,
-                                                                             lattice_constant_a, miller_h, miller_k,
-                                                                             miller_l, xray=wavelength,
-                                                                             magnitude=Q_scan_rlu_value):
+                                                                            relaxation,
+                                                                            lattice_constant_a, miller_h, miller_k,
+                                                                            miller_l, xray=wavelength,
+                                                                            magnitude=Q_scan_rlu_value):
     alloy_a = composition * properties.at[material_1, 'a'] + (1 - composition) * properties.at[material_2, 'a']
     alloy_c = composition * properties.at[material_1, 'c'] + (1 - composition) * properties.at[material_2, 'c']
     alloy_v = composition * properties.at[material_1, 'v'] + (1 - composition) * properties.at[material_2, 'v']
