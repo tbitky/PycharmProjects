@@ -104,7 +104,7 @@ def omega_and_ttheta_calculate(qx, qy):
     omega_ttheta_candidates *= 180 / np.pi
 
     sort = range((omega_ttheta_candidates.shape[0]))
-    if np.abs(omega_ttheta_candidates[0][0] - 90) >= np.abs(omega_ttheta_candidates[0][2] - 90):
+    if np.abs(omega_ttheta_candidates[0][0] - 90) >= np.abs(omega_ttheta_candidates[2][0] - 90):
         sort = [2, 3, 0, 1]
 
     for i in range(int(len(omega_ttheta_candidates) / 2)):
