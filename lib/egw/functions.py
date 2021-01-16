@@ -80,7 +80,7 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, a=0.0, c=0.0, 
 
 
 def omega_and_ttheta_calculate(qx, qy):
-    omega_ttheta_candidates = np.array([])
+    omega_ttheta_candidates = np.empty((4,2))
     A = np.sqrt(-qx ** 4 - 2 * qx ** 2 * qy ** 2 + qx ** 2 - qy ** 4 + qy ** 2)
     B = (qx ** 2 + qx + qy ** 2)
 
@@ -133,7 +133,7 @@ def omega_and_ttheta_calculate(qx, qy):
     return omega, ttheta
 
 
-def composition_and_relaxationo_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
+def composition_and_relaxation_or_strained_lattice_constant_and_hkl_to_qxqy(material_1, material_2, composition,
                                                                              relaxation,
                                                                              lattice_constant_a, miller_h, miller_k,
                                                                              miller_l, xray=wavelength,
