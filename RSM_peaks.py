@@ -1,4 +1,3 @@
-
 import tkinter
 from tkinter import filedialog
 import os
@@ -47,7 +46,7 @@ def equation_calculate(a, b, a_measured, c_measured):
 
 
 def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l):
-    a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2)*4 / 3) / qx)
+    a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) / qx)
     c = abs(miller_l / qy)
     print("測定値　　　      a={0:.3f}Å, c={1:.3f}Å".format(a, c))
     algan_solution = equation_calculate(1, 0, a, c)
@@ -112,7 +111,6 @@ def main():
     xrdfileoption = xu.io.panalytical_xml.XRDMLFile(os.path.basename(filepath), path=os.path.dirname(filepath))
     rawxrdfile = xu.io.panalytical_xml.getxrdml_map(os.path.basename(filepath), path=os.path.dirname(filepath))
 
-
     detect_range = (3,) + xrdfileoption.scan.ddict['detector'].shape
     twod_datas = np.array(rawxrdfile).reshape((detect_range))
     qx, qy = omega_and_2thete_convert_to_qx_and_qy(rawxrdfile[0], rawxrdfile[1])
@@ -121,16 +119,17 @@ def main():
     twod_datas = twod_datas.transpose(0, 2, 1)
     twod_datas = twod_datas[:, ::-1, ::-1]
     nonzero_indices = np.where(twod_datas[2] > 0)
-    peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.0005)
+    # peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.005)
     count_time = xrdfileoption.scan.ddict['countTime'][0]
 
     hh, kk, ll = map(int, input('hkl入力:').split())
 
-    for i in range((len(peak_indices[0]))):
-        print("\nPeak" + str(i))
-        xx = twod_datas[0][peak_indices[0][i]][peak_indices[1][i]]
-        yy = twod_datas[1][peak_indices[0][i]][peak_indices[1][i]]
-        ternary_a_c_r_calculate(float(xx) / 10, float(yy) / 10, hh, kk, ll)
+    # for i in range((len(peak_indices[0]))):
+    #     print("\nPeak" + str(i))
+    #     xx = twod_datas[0][peak_indices[0][i]][peak_indices[1][i]]
+    #     yy = twod_datas[1][peak_indices[0][i]][peak_indices[1][i]]
+    #     ternary_a_c_r_calculate(float(xx) / 10, float(yy) / 10, hh, kk, ll)
+
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -143,23 +142,26 @@ def main():
     ax.scatter(twod_datas[0][nonzero_indices], twod_datas[1][nonzero_indices], s=3, marker='o',
                c=scalarMap0.to_rgba(twod_datas[2][nonzero_indices] / count_time))
 
-    ax.scatter(twod_datas[0][peak_indices], twod_datas[1][peak_indices], s=5, marker='o', facecolor='w',
-               edgecolor='k')
-    for i in range(len(peak_indices[0])):
-        ax.annotate("Peak" + str(i), (
-            twod_datas[0][peak_indices[0][i]][peak_indices[1][i]],
-            twod_datas[1][peak_indices[0][i]][peak_indices[1][i]]),
-                    color='w')
+    # ax.scatter(twod_datas[0][peak_indices], twod_datas[1][peak_indices], s=5, marker='o', facecolor='w',
+    #            edgecolor='k')
+    # for i in range(len(peak_indices[0])):
+    #     ax.annotate("Peak" + str(i), (
+    #         twod_datas[0][peak_indices[0][i]][peak_indices[1][i]],
+    #         twod_datas[1][peak_indices[0][i]][peak_indices[1][i]]),
+    #                 color='w')
 
     "color bar"
     fig.colorbar(scalarMap0, ax=ax)
     plt.subplots_adjust(right=0.85)
     plt.subplots_adjust(wspace=0.1)
-    ax.set_xticklabels(fontname='Times New Roman')
-    ax.set_yticklabels(fontname='Times New Roman')
-    ax.set_xlabel('qx(${nm^{-1}}$)',fontname='Times New Roman')
-    ax.set_ylabel('qy(${nm^{-1}}$)',fontname='Times New Roman')
 
+    xticklabels = ax.get_xticklabels()
+    yticklabels = ax.get_yticklabels()
+    ax.set_xticklabels(xticklabels, color='black', fontname='Times New Roman')
+    ax.set_yticklabels(yticklabels, color='black', fontname='Times New Roman')
+    ax.set_xlabel('qx($nm^{-1}$)', color='black', fontname='Times New Roman')
+    ax.set_ylabel('qy($nm^{-1}$)', color='black', fontname='Times New Roman')
+    ax.tick_params(direction='in')
     plt.show()
 
 

@@ -78,6 +78,22 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, a=0.0, c=0.0, 
 
     return a, c
 
+def omega_and_2thete_convert_to_qx_and_qy(omega, twothete, xray=wavelength,miller_h=0, miller_k=0,
+                                                                            miller_l=0,unit='rlu'):
+    qx = np.empty(len(omega))
+    qy = np.empty(len(omega))
+
+
+    for i in range(len(omega)):
+        qx[i], qy[i] = (np.cos(np.radians(omega[i])) - np.cos(
+            np.radians(twothete[i] - omega[i]))) / xray * 10 , (
+                               np.sin(np.radians(omega[i])) + np.sin(
+                           np.radians(twothete[i] - omega[i]))) / xray*10
+    if unit == 'nm'and any(miller_h,miller_k,miller_l):
+        qx=qx/ np.sqrt(
+            (miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3)
+        qy=qy/miller_l
+    return qx, qy
 
 def omega_and_ttheta_calculate(qx, qy):
     omega_ttheta_candidates = np.empty((4, 2))
@@ -137,7 +153,7 @@ def composition_and_relaxation_or_strained_lattice_constant_and_hkl_to_qxqy(mate
                                                                             relaxation,
                                                                             lattice_constant_a, miller_h, miller_k,
                                                                             miller_l, xray=wavelength,
-                                                                            magnitude=Q_scan_rlu_value):
+                                                                            magnitude=Q_scan_rlu_value,unit='rlu'):
     alloy_a = composition * properties.at[material_1, 'a'] + (1 - composition) * properties.at[material_2, 'a']
     alloy_c = composition * properties.at[material_1, 'c'] + (1 - composition) * properties.at[material_2, 'c']
     alloy_v = composition * properties.at[material_1, 'v'] + (1 - composition) * properties.at[material_2, 'v']
