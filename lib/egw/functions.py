@@ -89,7 +89,7 @@ def omega_and_2thete_convert_to_qx_and_qy(omega, twothete, xray=wavelength,mille
             np.radians(twothete[i] - omega[i]))) / xray * 10 , (
                                np.sin(np.radians(omega[i])) + np.sin(
                            np.radians(twothete[i] - omega[i]))) / xray*10
-    if unit == 'nm'and any(miller_h,miller_k,miller_l):
+    if unit == 'nm'and any((miller_h,miller_k,miller_l)):
         qx=qx/ np.sqrt(
             (miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3)
         qy=qy/miller_l

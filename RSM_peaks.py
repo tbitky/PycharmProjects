@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from scipy.ndimage.filters import maximum_filter
 from decimal import Decimal, ROUND_HALF_UP
+import lib.egw.functions as egw
 
 """
 GaN |a,c,ν,Psp,e31,e33,C13,C33
@@ -111,9 +112,11 @@ def main():
     xrdfileoption = xu.io.panalytical_xml.XRDMLFile(os.path.basename(filepath), path=os.path.dirname(filepath))
     rawxrdfile = xu.io.panalytical_xml.getxrdml_map(os.path.basename(filepath), path=os.path.dirname(filepath))
 
+    hh, kk, ll = map(int, input('hkl入力:').split())
+
     detect_range = (3,) + xrdfileoption.scan.ddict['detector'].shape
     twod_datas = np.array(rawxrdfile).reshape((detect_range))
-    qx, qy = omega_and_2thete_convert_to_qx_and_qy(rawxrdfile[0], rawxrdfile[1])
+    qx, qy = egw.omega_and_2thete_convert_to_qx_and_qy(rawxrdfile[0], rawxrdfile[1],miller_h=hh,miller_k=kk,miller_l=ll,unit='nm')
     twod_datas[0] = np.array(qx).reshape(xrdfileoption.scan.ddict['detector'].shape)
     twod_datas[1] = np.array(qy).reshape(xrdfileoption.scan.ddict['detector'].shape)
     twod_datas = twod_datas.transpose(0, 2, 1)
@@ -122,7 +125,7 @@ def main():
     # peak_indices = detect_peaks(twod_datas[2], filter_size=10, order=0.005)
     count_time = xrdfileoption.scan.ddict['countTime'][0]
 
-    hh, kk, ll = map(int, input('hkl入力:').split())
+
 
     # for i in range((len(peak_indices[0]))):
     #     print("\nPeak" + str(i))
@@ -155,10 +158,10 @@ def main():
     plt.subplots_adjust(right=0.85)
     plt.subplots_adjust(wspace=0.1)
 
-    xticklabels = ax.get_xticklabels()
-    yticklabels = ax.get_yticklabels()
-    ax.set_xticklabels(xticklabels, color='black', fontname='Times New Roman')
-    ax.set_yticklabels(yticklabels, color='black', fontname='Times New Roman')
+    # xticklabels = ax.get_xticklabels()
+    # yticklabels = ax.get_yticklabels()
+    # ax.set_xticklabels(xticklabels, color='black', fontname='Times New Roman')
+    # ax.set_yticklabels(yticklabels, color='black', fontname='Times New Roman')
     ax.set_xlabel('qx($nm^{-1}$)', color='black', fontname='Times New Roman')
     ax.set_ylabel('qy($nm^{-1}$)', color='black', fontname='Times New Roman')
     ax.tick_params(direction='in')
