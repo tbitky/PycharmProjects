@@ -115,7 +115,7 @@ def main():
     """
     シートに記入
     """
-    complete_data = ~(Data.isnull().any(axis=1))
+    complete_data = ~(Data[Data.columns[Data.columns != 'FWHM']].isnull().any(axis=1))
     maxsample = np.max(Data.loc[complete_data, 'sample_name'])
     minsample = np.min(Data.loc[complete_data, 'sample_name'])
     error = 0
@@ -123,7 +123,7 @@ def main():
         """
         
         """
-        if complete_data[i] and Data.at[i, 'FWHM']:
+        if complete_data[i] :
             row = int(Data.at[i, 'sample_name']) - minsample + 3
             sheet.cell(row=row, column=1).value = int(Data.at[i, 'sample_name'])
             average_line = '=IF(OR(ISBLANK({0:}{2:}),ISERROR({0:}{2:})),"",AVERAGE({0:}{2:}:{1:}{2:}))'
