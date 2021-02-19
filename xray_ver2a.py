@@ -33,7 +33,6 @@ def distinguish_hkl_location_number(x):
     return sample_name, plane, position
 
 
-
 def switching_fwhm_calculate(position, intensity, means='absolute'):
     peaks, properties = find_peaks(intensity, distance=len(intensity) // 2)
     if means == 'absolute':
@@ -124,12 +123,12 @@ def main():
         """
         
         """
-        if complete_data[i]:
+        if complete_data[i] and Data.at[i, 'FWHM']:
             row = int(Data.at[i, 'sample_name']) - minsample + 3
             sheet.cell(row=row, column=1).value = int(Data.at[i, 'sample_name'])
-            average_line='=IF(OR(ISBLANK({0:}{2:}),ISERROR({0:}{2:})),"",AVERAGE({0:}{2:}:{1:}{2:}))'
-            sheet.cell(row=row, column=5).value = average_line.format('AB','AD',int(Data.at[i, 'sample_name']-4309))
-            sheet.cell(row=row, column=9).value = average_line.format('AF','AH',int(Data.at[i, 'sample_name']-4309))
+            average_line = '=IF(OR(ISBLANK({0:}{2:}),ISERROR({0:}{2:})),"",AVERAGE({0:}{2:}:{1:}{2:}))'
+            sheet.cell(row=row, column=5).value = average_line.format('AB', 'AD', int(Data.at[i, 'sample_name'] - 4309))
+            sheet.cell(row=row, column=9).value = average_line.format('AF', 'AH', int(Data.at[i, 'sample_name'] - 4309))
             for j, k in enumerate(['002', '102', '100']):
                 if Data.at[i, 'plane'] == k:
                     datacolumn = 2 + j * 4

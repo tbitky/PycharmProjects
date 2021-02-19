@@ -8,7 +8,7 @@ import itertools
 import pandas
 
 properties = data.properties
-wavelength = xu.wavelength('CuKa1')
+wavelength = 1.54056
 Q_scan_rlu_value = 0.5
 
 
@@ -39,18 +39,18 @@ def composition_calculate(material_1, material_2, a_measured, c_measured, means=
     solve = np.array(sympy.solve(equation, x))
     real_solves = list(map(real, solve))
 
-    solutions = np.array([i for i in real_solves if 1 >= i >= -10 ** -4])
+    solutions = np.array([i for i in real_solves if 1 >= i >= -10 ** -2])
     solutions = np.where(solutions < 0, 0, solutions)
     if solutions or solutions == 0:
         solution = solutions[0] * 100
-        lattice_constant_a = solution * properties.at[material_1, 'a'] + (1 - solution) * properties.at[material_2, 'a']
-        lattice_constant_c = solution * properties.at[material_1, 'c'] + (1 - solution) * properties.at[material_2, 'c']
+        lattice_constant_a = solutions[0] * properties.at[material_1, 'a'] + (1 - solutions[0]) * properties.at[material_2, 'a']
+        lattice_constant_c = solutions[0] * properties.at[material_1, 'c'] + (1 - solutions[0]) * properties.at[material_2, 'c']
         delta_a = (a_measured - lattice_constant_a) / lattice_constant_a * 100
         delta_c = (c_measured - lattice_constant_c) / lattice_constant_c * 100
-        if delta_a * delta_c > 0.001:
-            return False
-        else:
-            return solution, lattice_constant_a, lattice_constant_c, delta_a, delta_c
+        # if delta_a * delta_c > 0.001:
+        #     return False
+        # else:
+        return solution, lattice_constant_a, lattice_constant_c, delta_a, delta_c
     else:
         return False
 
@@ -63,7 +63,7 @@ def ternary_a_c_r_calculate(qx, qy, miller_h, miller_k, miller_l, a=0.0, c=0.0, 
         a = abs(np.sqrt((miller_h ** 2 + miller_h * miller_k + miller_k ** 2) * 4 / 3) * xray / qx)
     if qy != 0 and c == 0:
         c = abs(miller_l * xray / qy)
-    print("測定値　　　      a={0:.3f}Å, c={1:.3f}Å".format(a, c))
+    print("測定値　　　      a={0:.5f}Å, c={1:.5f}Å".format(a, c))
     searched_flag = False
     for i, j in itertools.combinations(properties.index.values, 2):
         material = j[:-1] + i
